@@ -29,7 +29,7 @@
 
 Plans:
 - [ ] 01-01: Инициализация монорепозитория, Go-модуля и базовой структуры Next.js
-- [ ] 01-02: Конфигурация локального `docker-compose.yml` (PostgreSQL 16, MongoDB 7) и `.env.example`
+- [ ] 01-02: Конфигурация локального `docker-compose.yml` (PostgreSQL 18, MongoDB 8) и `.env.example`
 - [ ] 01-03: Создание корневого `Makefile` и многоэтапных `Dockerfile` для backend и frontend
 
 ### Phase 2: Database Layer & Data Models

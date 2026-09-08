@@ -51,7 +51,7 @@
 
 ## Constraints
 
-- **Tech Stack**: Go 1.22+ (backend), Next.js 14/15 (frontend), PostgreSQL 16+, MongoDB 7+, routerai.ru API
+- **Tech Stack**: Go 1.27+ (backend), Next.js 16+ (frontend), PostgreSQL 18+, MongoDB 8+, routerai.ru API
 - **Deployment**: Dokploy совместимость с автономными Dockerfile для frontend и backend
 - **Auth**: VK OAuth / OpenID Connect
 - **Financial Integrity**: Все операции изменения баланса (начисление стартового бонуса, реферального вознаграждения, списание за токены) должны выполняться в транзакциях PostgreSQL с защитой от race conditions
