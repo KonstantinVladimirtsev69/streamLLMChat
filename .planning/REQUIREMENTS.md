@@ -16,9 +16,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Database Layer & Data Models (DATA)
 
-- [ ] **DATA-01**: Схема и миграции PostgreSQL для пользователей, балансов, истории транзакций и реферальных связей
-- [ ] **DATA-02**: Схема и индексы MongoDB для хранения сессий чатов и сообщений
-- [ ] **DATA-03**: Слой доступа к данным (DAL/Repository) в Go с поддержкой ACID-транзакций для балансовых операций
+- [x] **DATA-01**: Схема и миграции PostgreSQL для пользователей, балансов, истории транзакций и реферальных связей
+- [x] **DATA-02**: Схема и индексы MongoDB для хранения сессий чатов и сообщений
+- [x] **DATA-03**: Слой доступа к данным (DAL/Repository) в Go с поддержкой ACID-транзакций для балансовых операций
 
 ### Authentication & Referral System (AUTH)
 
@@ -86,9 +86,9 @@ Which phases cover which requirements.
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 1 | Complete |
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Complete |
+| DATA-02 | Phase 2 | Complete |
+| DATA-03 | Phase 2 | Complete |
 | AUTH-01 | Phase 3 | Pending |
 | AUTH-02 | Phase 3 | Pending |
 | AUTH-03 | Phase 3 | Pending |
