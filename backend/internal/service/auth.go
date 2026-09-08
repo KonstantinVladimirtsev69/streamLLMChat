@@ -12,13 +12,8 @@ import (
 	"backend/internal/repository"
 )
 
-// VKProfile contains sanitized profile information retrieved from VK API.
-type VKProfile struct {
-	ID        int64  `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	AvatarURL string `json:"avatar_url"`
-}
+// VKProfile is an alias to auth.VKProfile.
+type VKProfile = auth.VKProfile
 
 // UserDTO represents the public profile and balance data returned to the client.
 type UserDTO struct {

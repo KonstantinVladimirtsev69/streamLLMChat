@@ -45,4 +45,3 @@ type MessageRepository interface {
 	Create(ctx context.Context, msg *model.Message) error
 	ListByChatID(ctx context.Context, chatID bson.ObjectID, limit, offset int64) ([]model.Message, error)
 }
-

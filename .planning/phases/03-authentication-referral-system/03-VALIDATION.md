@@ -1,10 +1,11 @@
 ---
 phase: "03"
 slug: "authentication-referral-system"
-status: ready
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: "2026-09-08"
+validated: "2026-09-08T22:30:00Z"
 ---
 
 # Phase 03 — Validation Strategy
@@ -39,16 +40,17 @@ created: "2026-09-08"
 
 | Task ID | Plan | Wave | Requirement | Secure Behavior | Test Type | Automated Command | Status |
 |---------|------|------|-------------|-----------------|-----------|-------------------|--------|
-| 03-01-01 | 01 | 1 | AUTH-02 | HS256 algorithm enforcement, rejection of expired/tampered tokens | unit | `go -C backend test -v ./internal/auth/...` | ⬜ pending |
-| 03-01-02 | 01 | 1 | AUTH-02 | HttpOnly cookie & Bearer token extraction, 401 unauthorized handling | unit | `go -C backend test -v ./internal/server/middleware/...` | ⬜ pending |
-| 03-02-01 | 02 | 1 | AUTH-05 | Referral repository persistence and foreign key enforcement | integration | `go -C backend test -v ./internal/repository/postgres/...` | ⬜ pending |
-| 03-02-02 | 02 | 1 | AUTH-04 | Base58 un-ambiguous ref_code generation without collisions | unit | `go -C backend test -v -run TestRefCode ./internal/auth/...` | ⬜ pending |
-| 03-02-03 | 02 | 1 | AUTH-03, AUTH-05 | Atomic welcome (+500 kop) and referral (+200 kop) bonus crediting via TxManager | integration | `go -C backend test -v ./internal/service/...` | ⬜ pending |
-| 03-03-01 | 03 | 2 | AUTH-01 | VK OAuth URL generation with CSRF state & Mock client token exchange | unit | `go -C backend test -v -run TestVK ./internal/auth/...` | ⬜ pending |
-| 03-03-02 | 03 | 2 | AUTH-01, AUTH-02 | HTTP auth handlers (/login, /callback, /mock, /me, /logout) cookie & JSON response | integration | `go -C backend test -v ./internal/server/handler/...` | 0 pending |
-| 03-03-03 | 03 | 2 | AUTH-01..05 | Full server route wiring, environment config & race condition checks | e2e / lint | `go -C backend test -race ./... && make lint` | ⬜ pending |
+| 03-01-01 | 01 | 1 | AUTH-02 | HS256 algorithm enforcement, rejection of expired/tampered tokens | unit | `go -C backend test -v ./internal/auth/...` | ✅ green |
+| 03-01-02 | 01 | 1 | AUTH-02 | HttpOnly cookie & Bearer token extraction, 401 unauthorized handling | unit | `go -C backend test -v ./internal/server/middleware/...` | ✅ green |
+| 03-02-01 | 02 | 1 | AUTH-05 | Referral repository persistence and foreign key enforcement | integration | `go -C backend test -v ./internal/repository/postgres/...` | ✅ green |
+| 03-02-02 | 02 | 1 | AUTH-04 | Base58 un-ambiguous ref_code generation without collisions | unit | `go -C backend test -v -run TestRefCode ./internal/auth/...` | ✅ green |
+| 03-02-03 | 02 | 1 | AUTH-03, AUTH-05 | Atomic welcome (+500 kop) and referral (+200 kop) bonus crediting via TxManager | integration | `go -C backend test -v ./internal/service/...` | ✅ green |
+| 03-03-01 | 03 | 2 | AUTH-01 | VK OAuth URL generation with CSRF state & Mock client token exchange | unit | `go -C backend test -v -run TestVK ./internal/auth/...` | ✅ green |
+| 03-03-02 | 03 | 2 | AUTH-01, AUTH-02 | HTTP auth handlers (/login, /callback, /mock, /me, /logout) cookie & JSON response | integration | `go -C backend test -v ./internal/server/handler/...` | ✅ green |
+| 03-03-03 | 03 | 2 | AUTH-01..05 | Full server route wiring, environment config & race condition checks | e2e / lint | `go -C backend test -race ./... && make lint` | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
 
 ---
 

@@ -22,11 +22,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Authentication & Referral System (AUTH)
 
-- [ ] **AUTH-01**: Аутентификация через VK OAuth (редирект на VK ID, обмен кода, получение профиля)
-- [ ] **AUTH-02**: Управление пользовательскими сессиями через JWT и middleware проверки авторизации
-- [ ] **AUTH-03**: Автоматическое начисление приветственного бонуса 5 руб на баланс новому пользователю при первой регистрации
-- [ ] **AUTH-04**: Генерация уникальной реферальной ссылки для каждого пользователя
-- [ ] **AUTH-05**: Фиксация реферального перехода при регистрации и автоматическое начисление 2 руб на баланс пригласившего пользователя
+- [x] **AUTH-01**: Аутентификация через VK OAuth (редирект на VK ID, обмен кода, получение профиля)
+- [x] **AUTH-02**: Управление пользовательскими сессиями через JWT и middleware проверки авторизации
+- [x] **AUTH-03**: Автоматическое начисление приветственного бонуса 5 руб на баланс новому пользователю при первой регистрации
+- [x] **AUTH-04**: Генерация уникальной реферальной ссылки для каждого пользователя
+- [x] **AUTH-05**: Фиксация реферального перехода при регистрации и автоматическое начисление 2 руб на баланс пригласившего пользователя
+
 
 ### LLM Integration & Billing Engine (LLM)
 
@@ -89,11 +90,12 @@ Which phases cover which requirements.
 | DATA-01 | Phase 2 | Complete |
 | DATA-02 | Phase 2 | Complete |
 | DATA-03 | Phase 2 | Complete |
-| AUTH-01 | Phase 3 | Pending |
-| AUTH-02 | Phase 3 | Pending |
-| AUTH-03 | Phase 3 | Pending |
-| AUTH-04 | Phase 3 | Pending |
-| AUTH-05 | Phase 3 | Pending |
+| AUTH-01 | Phase 3 | Complete |
+| AUTH-02 | Phase 3 | Complete |
+| AUTH-03 | Phase 3 | Complete |
+| AUTH-04 | Phase 3 | Complete |
+| AUTH-05 | Phase 3 | Complete |
+
 | LLM-01 | Phase 4 | Pending |
 | LLM-02 | Phase 4 | Pending |
 | LLM-03 | Phase 4 | Pending |

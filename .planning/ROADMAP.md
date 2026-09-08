@@ -7,9 +7,10 @@
 ## Phases
 
 - [x] **Phase 1: Project Scaffold & Infrastructure** - Инициализация монорепозитория, Docker-конфигураций и Makefile (completed 2026-09-08)
-- [ ] **Phase 2: Database Layer & Data Models** - Схемы и репозитории PostgreSQL (пользователи, биллинг) и MongoDB (чаты)
-- [ ] **Phase 3: Authentication & Referral System** - VK OAuth, JWT сессии, начисление 5 руб и реферальная программа (+2 руб)
+- [x] **Phase 2: Database Layer & Data Models** - Схемы и репозитории PostgreSQL (пользователи, биллинг) и MongoDB (чаты) (completed 2026-09-08)
+- [x] **Phase 3: Authentication & Referral System** - VK OAuth, JWT сессии, начисление 5 руб и реферальная программа (+2 руб) (completed 2026-09-08)
 - [ ] **Phase 4: routerai.ru Integration & Billing Engine** - Клиент API, SSE стриминг, учет токенов и списание средств
+
 - [ ] **Phase 5: Chat Management & Persistence** - Управление диалогами, сохранение истории сообщений и сборка контекста
 - [ ] **Phase 6: Next.js Frontend Interface** - Веб-интерфейс чата, сайдбар, Markdown/код, выбор моделей, баланс и рефералы
 - [ ] **Phase 7: End-to-End Integration & Dokploy Deployment** - Сквозное тестирование, финализация Dockerfile и запуск в Dokploy
@@ -75,9 +76,10 @@ Plans:
 
 Plans:
 
-- [ ] 03-01: Реализация VK OAuth клиента и обработчика авторизации /auth/vk
-- [ ] 03-02: Система генерации JWT, сессионный контекст и Auth Middleware
-- [ ] 03-03: Логика приветственного бонуса (5 руб) и реферального вознаграждения (+2 руб) в транзакции
+- [x] 03-01: Core Auth Primitives — JWT Token Manager, Session Context, and Auth Middleware
+- [x] 03-02: Referral DAL, Code Generator & Transactional AuthService with Welcome and Referral Bonuses
+- [x] 03-03: VK OAuth Client, Mock Provider, HTTP Handlers, Server Integration & E2E Tests
+
 
 ### Phase 4: routerai.ru Integration & Billing Engine
 
@@ -166,9 +168,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Project Scaffold & Infrastructure | 3/3 | Complete    | 2026-09-08 |
-| 2. Database Layer & Data Models | 0/3 | Not started | - |
-| 3. Authentication & Referral System | 0/3 | Not started | - |
+| 2. Database Layer & Data Models | 3/3 | Complete    | 2026-09-08 |
+| 3. Authentication & Referral System | 3/3 | Complete    | 2026-09-08 |
 | 4. routerai.ru Integration & Billing Engine | 0/3 | Not started | - |
+
 | 5. Chat Management & Persistence | 0/2 | Not started | - |
 | 6. Next.js Frontend Interface | 0/4 | Not started | - |
 | 7. End-to-End Integration & Dokploy Deployment | 0/2 | Not started | - |
