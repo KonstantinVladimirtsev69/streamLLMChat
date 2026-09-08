@@ -5,7 +5,7 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 
-.PHONY: help build run-backend run-frontend run test lint lint-fix docker-up docker-down docker-build clean
+.PHONY: help build run-backend run-frontend run test lint lint-fix migrate-up migrate-down docker-up docker-down docker-build clean
 
 help: ## Показать справку по доступным командам
 	@echo "Использование: make [цель]"
@@ -46,6 +46,14 @@ lint-fix: ## Автоматически исправить замечания л
 	@cd backend && PATH="$$(go env GOPATH)/bin:$$PATH" golangci-lint run --fix ./...
 	@echo "==> Автоматическое исправление в Frontend..."
 	npm --prefix frontend run lint -- --fix
+
+migrate-up: ## Применить все миграции схемы PostgreSQL
+	@echo "==> Применение миграций PostgreSQL..."
+	@go -C backend run ./cmd/migrate -action=up
+
+migrate-down: ## Откатить последнюю миграцию схемы PostgreSQL
+	@echo "==> Откат миграции PostgreSQL..."
+	@go -C backend run ./cmd/migrate -action=down
 
 docker-up: ## Запустить PostgreSQL 18 и MongoDB 8 в Docker Compose
 	@echo "==> Запуск баз данных в Docker Compose..."
