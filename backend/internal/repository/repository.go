@@ -33,8 +33,16 @@ type ChatRepository interface {
 	Delete(ctx context.Context, id bson.ObjectID, userID int64) error
 }
 
+// ReferralRepository defines persistence operations for user referral relations.
+type ReferralRepository interface {
+	Create(ctx context.Context, referrerID, refereeID, rewardKopecks int64) error
+	GetByRefereeID(ctx context.Context, refereeID int64) (*model.Referral, error)
+	ListByReferrerID(ctx context.Context, referrerID int64, limit, offset int) ([]model.Referral, error)
+}
+
 // MessageRepository defines append and retrieval operations for chat messages in MongoDB.
 type MessageRepository interface {
 	Create(ctx context.Context, msg *model.Message) error
 	ListByChatID(ctx context.Context, chatID bson.ObjectID, limit, offset int64) ([]model.Message, error)
 }
+
