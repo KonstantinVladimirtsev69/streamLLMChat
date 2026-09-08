@@ -10,8 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"backend/internal/auth"
 	"backend/internal/database"
+	"backend/internal/repository/postgres"
 	"backend/internal/server"
+	"backend/internal/server/handler"
+	"backend/internal/service"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -28,6 +32,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	srv := server.New()
+
 	// Initialize PostgreSQL if DATABASE_URL is configured
 	var pgPool *pgxpool.Pool
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
@@ -40,6 +46,49 @@ func main() {
 		} else {
 			pgPool = pool
 			log.Println("PostgreSQL connection pool initialized")
+
+			// Initialize Auth & Referral dependencies
+			jwtSecret := os.Getenv("JWT_SECRET")
+			if len(jwtSecret) < 16 {
+				jwtSecret = "default-insecure-dev-jwt-secret-at-least-32-chars!"
+				log.Println("Warning: JWT_SECRET is empty or too short, using dev fallback")
+			}
+
+			tokenManager, err := auth.NewJWTTokenManager(jwtSecret)
+			if err != nil {
+				log.Fatalf("Failed to initialize token manager: %v", err)
+			}
+
+			frontendURL := os.Getenv("FRONTEND_URL")
+			if frontendURL == "" {
+				frontendURL = "http://localhost:3000"
+			}
+
+			userRepo := postgres.NewUserRepository(pgPool)
+			balanceRepo := postgres.NewBalanceRepository(pgPool)
+			referralRepo := postgres.NewReferralRepository(pgPool)
+			txManager := database.NewTxManager(pgPool)
+			refGen := auth.NewRefCodeGenerator(8)
+
+			authService := service.NewAuthService(userRepo, balanceRepo, referralRepo, txManager, refGen, frontendURL)
+
+			vkMock := os.Getenv("VK_MOCK_AUTH") == "true" || os.Getenv("VK_CLIENT_ID") == ""
+			vkClient := auth.NewVKOAuthClient(auth.VKConfig{
+				ClientID:     os.Getenv("VK_CLIENT_ID"),
+				ClientSecret: os.Getenv("VK_CLIENT_SECRET"),
+				RedirectURI:  os.Getenv("VK_REDIRECT_URI"),
+				FrontendURL:  frontendURL,
+				MockAuth:     vkMock,
+			})
+
+			cookieSecure := os.Getenv("COOKIE_SECURE") == "true"
+			authHandler := handler.NewAuthHandler(authService, vkClient, tokenManager, handler.AuthHandlerConfig{
+				FrontendURL:  frontendURL,
+				CookieSecure: cookieSecure,
+			})
+
+			srv.RegisterAuthRoutes(authHandler, tokenManager)
+			log.Println("Authentication and referral routes registered")
 		}
 	}
 
@@ -61,8 +110,6 @@ func main() {
 			log.Println("MongoDB connection and indexes initialized")
 		}
 	}
-
-	srv := server.New()
 
 	httpServer := &http.Server{
 		Addr:         ":" + port,

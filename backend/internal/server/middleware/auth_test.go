@@ -46,10 +46,12 @@ func TestAuthMiddleware(t *testing.T) {
 		}
 
 		req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+		//nolint:gosec // test cookie in mock request
 		req.AddCookie(&http.Cookie{
 			Name:  "auth_token",
 			Value: token,
 		})
+
 		rec := httptest.NewRecorder()
 
 		handler.ServeHTTP(rec, req)
@@ -110,10 +112,12 @@ func TestAuthMiddleware(t *testing.T) {
 
 		token, _ := tokenManager.GenerateToken(123, 456, -time.Hour)
 		req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+		//nolint:gosec // test cookie in mock request
 		req.AddCookie(&http.Cookie{
 			Name:  "auth_token",
 			Value: token,
 		})
+
 		rec := httptest.NewRecorder()
 
 		handler.ServeHTTP(rec, req)

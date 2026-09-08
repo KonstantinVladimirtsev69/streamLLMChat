@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"backend/internal/auth"
+	"backend/internal/server/handler"
+	appMiddleware "backend/internal/server/middleware"
+
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -47,6 +51,22 @@ func (s *Server) routes() {
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(map[string]string{
 			"status": "ok",
+		})
+	})
+}
+
+// RegisterAuthRoutes registers all public and protected authentication endpoints.
+func (s *Server) RegisterAuthRoutes(h *handler.AuthHandler, tokenManager auth.TokenManager) {
+	s.Router.Route("/api/v1/auth", func(r chi.Router) {
+		r.Get("/vk/login", h.Login)
+		r.Get("/vk/callback", h.Callback)
+		r.Get("/mock", h.MockLogin)
+		r.Post("/logout", h.Logout)
+
+		// Protected endpoints
+		r.Group(func(pr chi.Router) {
+			pr.Use(appMiddleware.AuthMiddleware(tokenManager))
+			pr.Get("/me", h.Me)
 		})
 	})
 }
