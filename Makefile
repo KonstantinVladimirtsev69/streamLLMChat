@@ -5,7 +5,7 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 
-.PHONY: help build run-backend run-frontend run test docker-up docker-down docker-build clean
+.PHONY: help build run-backend run-frontend run test lint lint-fix docker-up docker-down docker-build clean
 
 help: ## Показать справку по доступным командам
 	@echo "Использование: make [цель]"
@@ -33,6 +33,19 @@ test: ## Запустить тесты бэкенда и проверки фро
 	go -C backend test -v ./...
 	@echo "==> Проверка типов Frontend..."
 	npm --prefix frontend run lint || true
+
+lint: ## Запустить линтеры для backend и frontend
+	@echo "==> Запуск golangci-lint для Backend..."
+	@cd backend && PATH="$$(go env GOPATH)/bin:$$PATH" golangci-lint run ./...
+	@echo "==> Запуск ESLint для Frontend..."
+	npm --prefix frontend run lint
+	@echo "==> Все проверки линтеров успешно пройдены."
+
+lint-fix: ## Автоматически исправить замечания линтеров
+	@echo "==> Автоматическое исправление в Backend..."
+	@cd backend && PATH="$$(go env GOPATH)/bin:$$PATH" golangci-lint run --fix ./...
+	@echo "==> Автоматическое исправление в Frontend..."
+	npm --prefix frontend run lint -- --fix
 
 docker-up: ## Запустить PostgreSQL 18 и MongoDB 8 в Docker Compose
 	@echo "==> Запуск баз данных в Docker Compose..."

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -13,9 +14,11 @@ import (
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	port := "8080"
+	if p := os.Getenv("PORT"); p != "" {
+		if portNum, err := strconv.Atoi(p); err == nil && portNum > 0 && portNum <= 65535 {
+			port = strconv.Itoa(portNum)
+		}
 	}
 
 	srv := server.New()

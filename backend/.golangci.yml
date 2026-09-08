@@ -1,0 +1,45 @@
+version: "2"
+run:
+  tests: true
+linters:
+  enable:
+    - gosec
+    - misspell
+    - revive
+  settings:
+    gosec:
+      excludes:
+        - G104
+    govet:
+      disable:
+        - fieldalignment
+        - shadow
+      enable-all: true
+    revive:
+      rules:
+        - name: exported
+          disabled: false
+        - name: package-comments
+          disabled: true
+        - name: error-strings
+          disabled: false
+        - name: error-naming
+          disabled: false
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

@@ -4,20 +4,22 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 )
 
+// Server wraps the HTTP router and route configuration.
 type Server struct {
 	Router *chi.Mux
 }
 
+// New initializes and returns a new Server instance with configured middleware and routes.
 func New() *Server {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
+	r.Use(middleware.ClientIPFromHeader("X-Real-IP"))
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
