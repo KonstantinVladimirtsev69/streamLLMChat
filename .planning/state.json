@@ -1,0 +1,48 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": null,
+  "phases": [
+    {
+      "number": "1",
+      "name": "Project Scaffold & Infrastructure",
+      "status": "pending"
+    },
+    {
+      "number": "2",
+      "name": "Database Layer & Data Models",
+      "status": "pending"
+    },
+    {
+      "number": "3",
+      "name": "Authentication & Referral System",
+      "status": "pending"
+    },
+    {
+      "number": "4",
+      "name": "routerai.ru Integration & Billing Engine",
+      "status": "pending"
+    },
+    {
+      "number": "5",
+      "name": "Chat Management & Persistence",
+      "status": "pending"
+    },
+    {
+      "number": "6",
+      "name": "Next.js Frontend Interface",
+      "status": "pending"
+    },
+    {
+      "number": "7",
+      "name": "End-to-End Integration & Dokploy Deployment",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd-progress --next",
+    "label": "Advance to the next step",
+    "reason": "Phase 1 of 7 · 0% · executing"
+  },
+  "updated_at": "2026-09-08T17:54:46.988Z"
+}
