@@ -49,11 +49,11 @@ lint-fix: ## Автоматически исправить замечания л
 
 migrate-up: ## Применить все миграции схемы PostgreSQL
 	@echo "==> Применение миграций PostgreSQL..."
-	@go -C backend run ./cmd/migrate -action=up
+	@DATABASE_URL="$${DATABASE_URL:-postgres://postgres:postgres@127.0.0.1:5432/llmchat?sslmode=disable}" go -C backend run ./cmd/migrate -action=up
 
 migrate-down: ## Откатить последнюю миграцию схемы PostgreSQL
 	@echo "==> Откат миграции PostgreSQL..."
-	@go -C backend run ./cmd/migrate -action=down
+	@DATABASE_URL="$${DATABASE_URL:-postgres://postgres:postgres@127.0.0.1:5432/llmchat?sslmode=disable}" go -C backend run ./cmd/migrate -action=down
 
 docker-up: ## Запустить PostgreSQL 18 и MongoDB 8 в Docker Compose
 	@echo "==> Запуск баз данных в Docker Compose..."
