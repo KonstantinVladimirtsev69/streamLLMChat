@@ -6,7 +6,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Project Scaffold & Infrastructure** - Инициализация монорепозитория, Docker-конфигураций и Makefile
+- [x] **Phase 1: Project Scaffold & Infrastructure** - Инициализация монорепозитория, Docker-конфигураций и Makefile (completed 2026-09-08)
 - [ ] **Phase 2: Database Layer & Data Models** - Схемы и репозитории PostgreSQL (пользователи, биллинг) и MongoDB (чаты)
 - [ ] **Phase 3: Authentication & Referral System** - VK OAuth, JWT сессии, начисление 5 руб и реферальная программа (+2 руб)
 - [ ] **Phase 4: routerai.ru Integration & Billing Engine** - Клиент API, SSE стриминг, учет токенов и списание средств
@@ -33,12 +33,12 @@
 Plans:
 **Wave 1**
 
-- [ ] 01-01: Инициализация монорепозитория, Go-модуля и базовой структуры Next.js
-- [ ] 01-02: Конфигурация локального `docker-compose.yml` (PostgreSQL 18, MongoDB 8) и `.env.example`
+- [x] 01-01: Инициализация монорепозитория, Go-модуля и базовой структуры Next.js
+- [x] 01-02: Конфигурация локального `docker-compose.yml` (PostgreSQL 18, MongoDB 8) и `.env.example`
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-03: Создание корневого `Makefile` и многоэтапных `Dockerfile` для backend и frontend
+- [x] 01-03: Создание корневого `Makefile` и многоэтапных `Dockerfile` для backend и frontend
 
 ### Phase 2: Database Layer & Data Models
 
@@ -165,7 +165,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Project Scaffold & Infrastructure | 0/3 | Not started | - |
+| 1. Project Scaffold & Infrastructure | 3/3 | Complete    | 2026-09-08 |
 | 2. Database Layer & Data Models | 0/3 | Not started | - |
 | 3. Authentication & Referral System | 0/3 | Not started | - |
 | 4. routerai.ru Integration & Billing Engine | 0/3 | Not started | - |

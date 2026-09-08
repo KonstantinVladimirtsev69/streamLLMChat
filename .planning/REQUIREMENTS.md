@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure & Monorepo (INFRA)
 
-- [ ] **INFRA-01**: Монорепозиторий с разделением на директории `backend/` (Go) и `frontend/` (Next.js)
-- [ ] **INFRA-02**: Корневой `Makefile` с командами сборки, запуска, тестирования и контейнеризации
-- [ ] **INFRA-03**: Локальный `docker-compose.yml` для запуска PostgreSQL, MongoDB, backend и frontend сервисов
-- [ ] **INFRA-04**: Автономные `Dockerfile` для `backend` и `frontend`, оптимизированные для деплоя в Dokploy
+- [x] **INFRA-01**: Монорепозиторий с разделением на директории `backend/` (Go) и `frontend/` (Next.js)
+- [x] **INFRA-02**: Корневой `Makefile` с командами сборки, запуска, тестирования и контейнеризации
+- [x] **INFRA-03**: Локальный `docker-compose.yml` для запуска PostgreSQL, MongoDB, backend и frontend сервисов
+- [x] **INFRA-04**: Автономные `Dockerfile` для `backend` и `frontend`, оптимизированные для деплоя в Dokploy
 
 ### Database Layer & Data Models (DATA)
 
@@ -82,10 +82,10 @@ Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
-| INFRA-04 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
+| INFRA-04 | Phase 1 | Complete |
 | DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |
 | DATA-03 | Phase 2 | Pending |
@@ -110,6 +110,7 @@ Which phases cover which requirements.
 | DEPLOY-02 | Phase 7 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 26 total
 - Mapped to phases: 26
 - Unmapped: 0 ✓
