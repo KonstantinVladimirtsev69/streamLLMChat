@@ -9,7 +9,7 @@
 - [x] **Phase 1: Project Scaffold & Infrastructure** - Инициализация монорепозитория, Docker-конфигураций и Makefile (completed 2026-09-08)
 - [x] **Phase 2: Database Layer & Data Models** - Схемы и репозитории PostgreSQL (пользователи, биллинг) и MongoDB (чаты) (completed 2026-09-08)
 - [x] **Phase 3: Authentication & Referral System** - VK OAuth, JWT сессии, начисление 5 руб и реферальная программа (+2 руб) (completed 2026-09-08)
-- [ ] **Phase 4: routerai.ru Integration & Billing Engine** - Клиент API, SSE стриминг, учет токенов и списание средств
+- [x] **Phase 4: routerai.ru Integration & Billing Engine** - Клиент API, SSE стриминг, учет токенов и списание средств (completed 2026-09-09)
 
 - [ ] **Phase 5: Chat Management & Persistence** - Управление диалогами, сохранение истории сообщений и сборка контекста
 - [ ] **Phase 6: Next.js Frontend Interface** - Веб-интерфейс чата, сайдбар, Markdown/код, выбор моделей, баланс и рефералы
