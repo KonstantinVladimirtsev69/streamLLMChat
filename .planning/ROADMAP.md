@@ -121,8 +121,12 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 05-01: REST API для управления диалогами (CRUD) в MongoDB
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-02: Механизм сохранения сообщений и сборки истории контекста для отправки в LLM
 
 ### Phase 6: Next.js Frontend Interface
