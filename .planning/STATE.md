@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 04
-current_phase_name: routerai.ru Integration & Billing Engine
-status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-09-09T15:13:32.074Z"
-last_activity: 2026-09-08
-last_activity_desc: Phase 3 executed and verified (VK OAuth, JWT sessions, welcome bonus and referral rewards)
-state_head: a57cef9437563f39843b146e11a5f72e9c0cf005
+current_phase: 05
+current_phase_name: Chat Management & Persistence
+status: ready_to_plan
+stopped_at: Phase 5 context gathered
+last_updated: "2026-09-09T18:55:00.000Z"
+last_activity: 2026-09-09
+last_activity_desc: Phase 5 context gathered (ChatService, MongoDB persistence, sliding window and hybrid streaming)
+state_head: 18c9189
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 12
-  completed_plans: 9
-  percent: 29
+  completed_phases: 4
+  total_plans: 14
+  completed_plans: 12
+  percent: 85
 ---
 
 # Project State
@@ -23,20 +23,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Быстрый, надёжный веб-чат с LLM и прозрачной тарификацией за фактически израсходованные токены с баланса пользователя.
-**Current focus:** Phase 3: Authentication & Referral System
+**Current focus:** Phase 5: Chat Management & Persistence
 
 ## Current Position
 
-Phase: 04 (routerai.ru Integration & Billing Engine) — READY TO EXECUTE
-Plan: Complete (3/3 plans executed and verified)
-Status: Ready to execute
-Last activity: 2026-09-08 — Phase 3 executed and validated
+Phase: 05 (Chat Management & Persistence) — READY TO PLAN
+Plan: 0/2 plans created
+Status: Ready to plan
+Last activity: 2026-09-09 — Phase 5 context gathered and decisions locked
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 9
+- Total plans completed: 12
 - Average duration: - min
 - Total execution time: 0.0 hours
 
@@ -47,8 +47,8 @@ Last activity: 2026-09-08 — Phase 3 executed and validated
 | 1. Project Scaffold & Infrastructure | 3/3 | Complete | - |
 | 2. Database Layer & Data Models | 3/3 | Complete | - |
 | 3. Authentication & Referral System | 3/3 | Complete | - |
-| 4. routerai.ru Integration & Billing Engine | 0/3 | - | - |
-| 5. Chat Management & Persistence | 0/2 | - | - |
+| 4. routerai.ru Integration & Billing Engine | 3/3 | Complete | - |
+| 5. Chat Management & Persistence | 0/2 | Ready to plan | - |
 | 6. Next.js Frontend Interface | 0/4 | - | - |
 | 7. End-to-End Integration & Dokploy Deployment | 0/2 | - | - |
 
