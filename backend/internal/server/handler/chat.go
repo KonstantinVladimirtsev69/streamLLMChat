@@ -339,19 +339,70 @@ func (h *ChatHandler) StreamChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Model == "" || len(req.Messages) == 0 {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "model and non-empty messages are required"})
-		return
-	}
-
 	userID, ok := middleware.UserIDFromContext(r.Context())
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		_ = json.NewEncoder(w).Encode(map[string]string{"error": "unauthorized"})
 		return
+	}
+
+	var chatID bson.ObjectID
+	if req.ChatID != "" {
+		parsedID, err := bson.ObjectIDFromHex(req.ChatID)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid chat id"})
+			return
+		}
+		chatID = parsedID
+
+		userPrompt := strings.TrimSpace(req.Content)
+		if userPrompt == "" && len(req.Messages) > 0 {
+			userPrompt = strings.TrimSpace(req.Messages[len(req.Messages)-1].Content)
+		}
+		if userPrompt == "" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "message content is required"})
+			return
+		}
+
+		if h.chatSvc != nil {
+			assembledMsgs, chat, err := h.chatSvc.PreparePromptContext(r.Context(), chatID, userID, userPrompt, 20)
+			if err != nil {
+				if errors.Is(err, model.ErrNotFound) {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusNotFound)
+					_ = json.NewEncoder(w).Encode(map[string]string{"error": "chat not found"})
+					return
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": "failed to prepare context"})
+				return
+			}
+			req.Messages = assembledMsgs
+			if req.Model == "" && chat != nil && chat.Model != "" {
+				req.Model = chat.Model
+			}
+
+			// Save user message to MongoDB before generation
+			_, _ = h.chatSvc.SaveUserMessage(r.Context(), chatID, userID, userPrompt)
+			_ = h.chatSvc.TouchChat(r.Context(), chatID, userID, req.Model)
+		}
+	} else {
+		if req.Model == "" || len(req.Messages) == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "model and non-empty messages are required"})
+			return
+		}
+	}
+
+	if req.Model == "" {
+		req.Model = service.DefaultChatModel
 	}
 
 	// 1. Pre-generation balance check: block with HTTP 402 if balance <= 0 without invoking upstream LLM
@@ -397,6 +448,7 @@ func (h *ChatHandler) StreamChat(w http.ResponseWriter, r *http.Request) {
 
 	var lastUsage *model.TokenUsage
 	var generatedChars int
+	var assistantText strings.Builder
 	var billed bool
 
 	chargeDeltas := func(ctx context.Context) {
@@ -434,6 +486,12 @@ func (h *ChatHandler) StreamChat(w http.ResponseWriter, r *http.Request) {
 			cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			chargeDeltas(cleanupCtx)
+
+			// Save partial assistant message to MongoDB if stateful and text was received
+			if !chatID.IsZero() && h.chatSvc != nil && assistantText.Len() > 0 && lastUsage != nil {
+				_, _ = h.chatSvc.SaveAssistantMessage(cleanupCtx, chatID, userID, assistantText.String(), *lastUsage)
+				_ = h.chatSvc.TouchChat(cleanupCtx, chatID, userID, req.Model)
+			}
 			return
 		case err, ok := <-errs:
 			if ok && err != nil {
@@ -453,6 +511,7 @@ func (h *ChatHandler) StreamChat(w http.ResponseWriter, r *http.Request) {
 			switch event.Type {
 			case model.StreamEventDelta:
 				generatedChars += len(event.Content)
+				assistantText.WriteString(event.Content)
 			case model.StreamEventDone:
 				if event.Usage != nil {
 					lastUsage = event.Usage
@@ -463,6 +522,12 @@ func (h *ChatHandler) StreamChat(w http.ResponseWriter, r *http.Request) {
 				chargeDeltas(r.Context())
 				if lastUsage != nil {
 					event.Usage = lastUsage
+				}
+
+				// Save assistant message to MongoDB if stateful
+				if !chatID.IsZero() && h.chatSvc != nil && lastUsage != nil {
+					_, _ = h.chatSvc.SaveAssistantMessage(r.Context(), chatID, userID, assistantText.String(), *lastUsage)
+					_ = h.chatSvc.TouchChat(r.Context(), chatID, userID, req.Model)
 				}
 			}
 

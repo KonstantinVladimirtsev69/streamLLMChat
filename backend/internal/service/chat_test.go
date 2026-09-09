@@ -303,3 +303,159 @@ func TestChatService_TouchChat(t *testing.T) {
 		t.Fatalf("expected touched model 'gpt-4o', got %s", touchedModel)
 	}
 }
+
+func TestChatService_AutoUpdateTitleIfNeeded(t *testing.T) {
+	ctx := context.Background()
+	chatID := bson.NewObjectID()
+	userID := int64(10)
+
+	var updatedTitle string
+	chat := &model.Chat{
+		ID:     chatID,
+		UserID: userID,
+		Title:  service.DefaultChatTitle,
+	}
+
+	chatRepo := &mockChatRepo{
+		getByIDFunc: func(ctx context.Context, id bson.ObjectID, uid int64) (*model.Chat, error) {
+			if id == chatID && uid == userID {
+				return chat, nil
+			}
+			return nil, model.ErrNotFound
+		},
+		updateTitleFunc: func(ctx context.Context, id bson.ObjectID, uid int64, title string) error {
+			updatedTitle = title
+			chat.Title = title
+			return nil
+		},
+	}
+	svc := service.NewChatService(chatRepo, &mockMessageRepo{})
+
+	// 1. Long prompt gets truncated to 45 runes + "..."
+	longPrompt := "Как создать масштабируемый сервис на языке Go с использованием чистой архитектуры?"
+	err := svc.AutoUpdateTitleIfNeeded(ctx, chatID, userID, longPrompt)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	expectedTitle := string([]rune(longPrompt)[:45]) + "..."
+	if updatedTitle != expectedTitle {
+		t.Errorf("expected title '%s', got '%s'", expectedTitle, updatedTitle)
+	}
+
+	// 2. Already updated title is not overwritten on subsequent prompts
+	err = svc.AutoUpdateTitleIfNeeded(ctx, chatID, userID, "Второй вопрос")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if updatedTitle != expectedTitle {
+		t.Errorf("expected title to remain '%s', got '%s'", expectedTitle, updatedTitle)
+	}
+}
+
+func TestChatService_PreparePromptContext_SlidingWindow(t *testing.T) {
+	ctx := context.Background()
+	chatID := bson.NewObjectID()
+	userID := int64(10)
+
+	// Create 30 historical messages
+	var allMessages []model.Message
+	for i := 1; i <= 30; i++ {
+		role := "user"
+		if i%2 == 0 {
+			role = "assistant"
+		}
+		allMessages = append(allMessages, model.Message{
+			ID:      bson.NewObjectID(),
+			ChatID:  chatID,
+			UserID:  userID,
+			Role:    role,
+			Content: "Message",
+		})
+	}
+
+	chatRepo := &mockChatRepo{
+		getByIDFunc: func(ctx context.Context, id bson.ObjectID, uid int64) (*model.Chat, error) {
+			if id == chatID && uid == userID {
+				return &model.Chat{ID: chatID, UserID: userID, Title: "Диалог"}, nil
+			}
+			return nil, model.ErrNotFound
+		},
+	}
+	msgRepo := &mockMessageRepo{
+		listByChatIDFunc: func(ctx context.Context, id bson.ObjectID, limit, offset int64) ([]model.Message, error) {
+			return allMessages, nil
+		},
+	}
+	svc := service.NewChatService(chatRepo, msgRepo)
+
+	// Context assembly with default sliding window of 20
+	assembled, chat, err := svc.PreparePromptContext(ctx, chatID, userID, "Новый вопрос", 20)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if chat.ID != chatID {
+		t.Errorf("expected chat ID %s, got %s", chatID.Hex(), chat.ID.Hex())
+	}
+	// Expected: 20 previous messages + 1 new prompt = 21 messages
+	if len(assembled) != 21 {
+		t.Fatalf("expected 21 messages in context, got %d", len(assembled))
+	}
+	lastMsg := assembled[len(assembled)-1]
+	if lastMsg.Role != "user" || lastMsg.Content != "Новый вопрос" {
+		t.Errorf("expected last message to be new prompt, got %+v", lastMsg)
+	}
+
+	// Non-owner should receive ErrNotFound
+	_, _, err = svc.PreparePromptContext(ctx, chatID, 999, "Хакерский запрос", 20)
+	if !errors.Is(err, model.ErrNotFound) {
+		t.Fatalf("expected ErrNotFound for non-owner, got %v", err)
+	}
+}
+
+func TestChatService_SaveUserAndAssistantMessages(t *testing.T) {
+	ctx := context.Background()
+	chatID := bson.NewObjectID()
+	userID := int64(10)
+
+	var savedMessages []*model.Message
+	msgRepo := &mockMessageRepo{
+		createFunc: func(ctx context.Context, msg *model.Message) error {
+			savedMessages = append(savedMessages, msg)
+			return nil
+		},
+	}
+	chatRepo := &mockChatRepo{
+		getByIDFunc: func(ctx context.Context, id bson.ObjectID, uid int64) (*model.Chat, error) {
+			return &model.Chat{ID: chatID, UserID: userID, Title: "Чат"}, nil
+		},
+	}
+	svc := service.NewChatService(chatRepo, msgRepo)
+
+	// Save User Message
+	uMsg, err := svc.SaveUserMessage(ctx, chatID, userID, "Привет, мир!")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if uMsg.Role != "user" || uMsg.Content != "Привет, мир!" {
+		t.Errorf("unexpected user message: %+v", uMsg)
+	}
+
+	// Save Assistant Message
+	usage := model.TokenUsage{
+		PromptTokens:     10,
+		CompletionTokens: 25,
+		TotalTokens:      35,
+		CostKopecks:      5,
+	}
+	aMsg, err := svc.SaveAssistantMessage(ctx, chatID, userID, "Привет! Рад помочь.", usage)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if aMsg.Role != "assistant" || aMsg.CostKopecks != 5 || aMsg.TotalTokens != 35 {
+		t.Errorf("unexpected assistant message: %+v", aMsg)
+	}
+
+	if len(savedMessages) != 2 {
+		t.Fatalf("expected 2 saved messages in repo, got %d", len(savedMessages))
+	}
+}

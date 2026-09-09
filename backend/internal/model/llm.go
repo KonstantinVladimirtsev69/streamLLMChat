@@ -18,6 +18,8 @@ type ChatMessage struct {
 
 // ChatCompletionRequest is the payload sent to initiate a completion.
 type ChatCompletionRequest struct {
+	ChatID   string        `json:"chat_id,omitempty"`
+	Content  string        `json:"content,omitempty"`
 	Model    string        `json:"model"`
 	Messages []ChatMessage `json:"messages"`
 	Stream   bool          `json:"stream"`

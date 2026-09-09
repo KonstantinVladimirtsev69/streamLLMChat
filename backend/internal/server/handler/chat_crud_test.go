@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -109,6 +110,55 @@ func (f *fakeChatService) TouchChat(ctx context.Context, chatID bson.ObjectID, u
 	return nil
 }
 
+func (f *fakeChatService) SaveUserMessage(ctx context.Context, chatID bson.ObjectID, userID int64, content string) (*model.Message, error) {
+	msg := &model.Message{
+		ID:        bson.NewObjectID(),
+		ChatID:    chatID,
+		UserID:    userID,
+		Role:      "user",
+		Content:   content,
+		CreatedAt: time.Now(),
+	}
+	f.messages[chatID.Hex()] = append(f.messages[chatID.Hex()], *msg)
+	return msg, nil
+}
+
+func (f *fakeChatService) SaveAssistantMessage(ctx context.Context, chatID bson.ObjectID, userID int64, content string, usage model.TokenUsage) (*model.Message, error) {
+	msg := &model.Message{
+		ID:               bson.NewObjectID(),
+		ChatID:           chatID,
+		UserID:           userID,
+		Role:             "assistant",
+		Content:          content,
+		PromptTokens:     usage.PromptTokens,
+		CompletionTokens: usage.CompletionTokens,
+		TotalTokens:      usage.TotalTokens,
+		CostKopecks:      usage.CostKopecks,
+		CreatedAt:        time.Now(),
+	}
+	f.messages[chatID.Hex()] = append(f.messages[chatID.Hex()], *msg)
+	return msg, nil
+}
+
+func (f *fakeChatService) AutoUpdateTitleIfNeeded(ctx context.Context, chatID bson.ObjectID, userID int64, content string) error {
+	return nil
+}
+
+func (f *fakeChatService) PreparePromptContext(ctx context.Context, chatID bson.ObjectID, userID int64, newMsg string, maxHistory int) ([]model.ChatMessage, *model.Chat, error) {
+	c, ok := f.chats[chatID.Hex()]
+	if !ok || c.UserID != userID {
+		return nil, nil, model.ErrNotFound
+	}
+	var res []model.ChatMessage
+	for _, m := range f.messages[chatID.Hex()] {
+		res = append(res, model.ChatMessage{Role: m.Role, Content: m.Content})
+	}
+	if newMsg != "" {
+		res = append(res, model.ChatMessage{Role: "user", Content: newMsg})
+	}
+	return res, c, nil
+}
+
 func setupChatCRUDTestRouter(chatSvc service.ChatService) (http.Handler, auth.TokenManager) {
 	tm, _ := auth.NewJWTTokenManager("super-secret-key-at-least-16-chars")
 	mock := llm.NewMockLLMProvider()
@@ -119,6 +169,7 @@ func setupChatCRUDTestRouter(chatSvc service.ChatService) (http.Handler, auth.To
 	r := chi.NewRouter()
 	r.Group(func(pr chi.Router) {
 		pr.Use(middleware.AuthMiddleware(tm))
+		pr.Post("/api/v1/chat/stream", h.StreamChat)
 		pr.Route("/api/v1/chats", func(cr chi.Router) {
 			cr.Post("/", h.CreateChat)
 			cr.Get("/", h.ListChats)
@@ -330,5 +381,118 @@ func TestChatCRUD_DeleteChat_And_ListMessages(t *testing.T) {
 	r.ServeHTTP(rec, req)
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("expected 404 for deleted chat, got %d", rec.Code)
+	}
+}
+
+func TestStreamChat_Stateful_PersistenceAndContext(t *testing.T) {
+	fakeSvc := newFakeChatService()
+	r, tm := setupChatCRUDTestRouter(fakeSvc)
+
+	ctx := context.Background()
+	chat, _ := fakeSvc.CreateChat(ctx, 101, service.DefaultChatTitle, "openai/gpt-4o-mini")
+	token, _ := tm.GenerateToken(101, 1001, time.Hour)
+
+	// Turn 1: Stream to chat with chat_id
+	payload1 := model.ChatCompletionRequest{
+		ChatID:  chat.ID.Hex(),
+		Content: "Привет! Расскажи о микросервисах на Go.",
+	}
+	body, _ := json.Marshal(payload1)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/chat/stream", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 OK for stream, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	// Verify messages saved in chat (user message + assistant message)
+	msgs := fakeSvc.messages[chat.ID.Hex()]
+	if len(msgs) != 2 {
+		t.Fatalf("expected 2 messages (user + assistant) in chat, got %d", len(msgs))
+	}
+	if msgs[0].Role != "user" || msgs[0].Content != payload1.Content {
+		t.Errorf("unexpected user message: %+v", msgs[0])
+	}
+	if msgs[1].Role != "assistant" {
+		t.Errorf("expected assistant message, got %+v", msgs[1])
+	}
+
+	// Turn 2: Second message in the same chat
+	payload2 := model.ChatCompletionRequest{
+		ChatID:  chat.ID.Hex(),
+		Content: "А как реализовать graceful shutdown?",
+	}
+	body2, _ := json.Marshal(payload2)
+	req2 := httptest.NewRequest(http.MethodPost, "/api/v1/chat/stream", bytes.NewReader(body2))
+	req2.Header.Set("Authorization", "Bearer "+token)
+	req2.Header.Set("Content-Type", "application/json")
+	rec2 := httptest.NewRecorder()
+	r.ServeHTTP(rec2, req2)
+
+	if rec2.Code != http.StatusOK {
+		t.Fatalf("expected 200 OK for 2nd stream, got %d", rec2.Code)
+	}
+
+	// Verify 4 messages in total
+	msgsAfterTurn2 := fakeSvc.messages[chat.ID.Hex()]
+	if len(msgsAfterTurn2) != 4 {
+		t.Fatalf("expected 4 messages after turn 2, got %d", len(msgsAfterTurn2))
+	}
+}
+
+func TestStreamChat_Stateful_OtherUserChat_Returns404(t *testing.T) {
+	fakeSvc := newFakeChatService()
+	r, tm := setupChatCRUDTestRouter(fakeSvc)
+
+	ctx := context.Background()
+	user1Chat, _ := fakeSvc.CreateChat(ctx, 101, "Чат пользователя 1", "openai/gpt-4o-mini")
+	token2, _ := tm.GenerateToken(202, 2002, time.Hour) // User 2
+
+	// User 2 attempts to stream into User 1's chat
+	payload := model.ChatCompletionRequest{
+		ChatID:  user1Chat.ID.Hex(),
+		Content: "Попытка взлома",
+	}
+	body, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/chat/stream", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer "+token2)
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	// Must return 404 Not Found (D-05)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected 404 Not Found when streaming to other user's chat, got %d", rec.Code)
+	}
+}
+
+func TestStreamChat_Stateless_BackwardCompatibility(t *testing.T) {
+	fakeSvc := newFakeChatService()
+	r, tm := setupChatCRUDTestRouter(fakeSvc)
+
+	token, _ := tm.GenerateToken(101, 1001, time.Hour)
+
+	// Stateless request without chat_id
+	payload := model.ChatCompletionRequest{
+		Model: "openai/gpt-4o-mini",
+		Messages: []model.ChatMessage{
+			{Role: "user", Content: "Stateless ping"},
+		},
+	}
+	body, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/chat/stream", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 OK for stateless stream, got %d: %s", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Header().Get("Content-Type"), "text/event-stream") {
+		t.Errorf("expected text/event-stream content type, got %s", rec.Header().Get("Content-Type"))
 	}
 }

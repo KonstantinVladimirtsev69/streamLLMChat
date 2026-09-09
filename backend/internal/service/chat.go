@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"backend/internal/model"
 	"backend/internal/repository"
@@ -26,6 +27,10 @@ type ChatService interface {
 	DeleteChat(ctx context.Context, chatID bson.ObjectID, userID int64) error
 	ListMessages(ctx context.Context, chatID bson.ObjectID, userID int64, limit, offset int64) ([]model.Message, error)
 	TouchChat(ctx context.Context, chatID bson.ObjectID, userID int64, modelName string) error
+	SaveUserMessage(ctx context.Context, chatID bson.ObjectID, userID int64, content string) (*model.Message, error)
+	SaveAssistantMessage(ctx context.Context, chatID bson.ObjectID, userID int64, content string, usage model.TokenUsage) (*model.Message, error)
+	AutoUpdateTitleIfNeeded(ctx context.Context, chatID bson.ObjectID, userID int64, content string) error
+	PreparePromptContext(ctx context.Context, chatID bson.ObjectID, userID int64, newMsg string, maxHistory int) ([]model.ChatMessage, *model.Chat, error)
 }
 
 type chatService struct {
@@ -117,4 +122,118 @@ func (s *chatService) ListMessages(ctx context.Context, chatID bson.ObjectID, us
 // TouchChat updates the updated_at timestamp and optionally the model of the chat.
 func (s *chatService) TouchChat(ctx context.Context, chatID bson.ObjectID, userID int64, modelName string) error {
 	return s.chatRepo.Touch(ctx, chatID, userID, modelName)
+}
+
+// SaveUserMessage appends a user message to the conversation and triggers auto-titling if applicable.
+func (s *chatService) SaveUserMessage(ctx context.Context, chatID bson.ObjectID, userID int64, content string) (*model.Message, error) {
+	msg := &model.Message{
+		ID:        bson.NewObjectID(),
+		ChatID:    chatID,
+		UserID:    userID,
+		Role:      "user",
+		Content:   content,
+		CreatedAt: time.Now(),
+	}
+
+	if err := s.messageRepo.Create(ctx, msg); err != nil {
+		return nil, fmt.Errorf("failed to save user message: %w", err)
+	}
+
+	// Auto update title if this is the first user message
+	_ = s.AutoUpdateTitleIfNeeded(ctx, chatID, userID, content)
+
+	return msg, nil
+}
+
+// SaveAssistantMessage appends the generated assistant message with token usage metrics.
+func (s *chatService) SaveAssistantMessage(ctx context.Context, chatID bson.ObjectID, userID int64, content string, usage model.TokenUsage) (*model.Message, error) {
+	msg := &model.Message{
+		ID:               bson.NewObjectID(),
+		ChatID:           chatID,
+		UserID:           userID,
+		Role:             "assistant",
+		Content:          content,
+		PromptTokens:     usage.PromptTokens,
+		CompletionTokens: usage.CompletionTokens,
+		TotalTokens:      usage.TotalTokens,
+		CostKopecks:      usage.CostKopecks,
+		CreatedAt:        time.Now(),
+	}
+
+	if err := s.messageRepo.Create(ctx, msg); err != nil {
+		return nil, fmt.Errorf("failed to save assistant message: %w", err)
+	}
+
+	return msg, nil
+}
+
+// AutoUpdateTitleIfNeeded updates chat title from prompt if currently titled default ("Новый диалог").
+func (s *chatService) AutoUpdateTitleIfNeeded(ctx context.Context, chatID bson.ObjectID, userID int64, content string) error {
+	chat, err := s.chatRepo.GetByID(ctx, chatID, userID)
+	if err != nil {
+		return err
+	}
+
+	if chat.Title != DefaultChatTitle {
+		return nil
+	}
+
+	trimmed := strings.TrimSpace(content)
+	if trimmed == "" {
+		return nil
+	}
+
+	runes := []rune(trimmed)
+	var newTitle string
+	if len(runes) > 45 {
+		newTitle = string(runes[:45]) + "..."
+	} else {
+		newTitle = string(runes)
+	}
+
+	if newTitle != "" && newTitle != chat.Title {
+		return s.chatRepo.UpdateTitle(ctx, chatID, userID, newTitle)
+	}
+
+	return nil
+}
+
+// PreparePromptContext loads the sliding window (up to maxHistory messages) and appends the new message.
+func (s *chatService) PreparePromptContext(ctx context.Context, chatID bson.ObjectID, userID int64, newMsg string, maxHistory int) ([]model.ChatMessage, *model.Chat, error) {
+	chat, err := s.chatRepo.GetByID(ctx, chatID, userID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if maxHistory <= 0 {
+		maxHistory = 20
+	}
+
+	// Fetch messages from repository (ordered chronologically ASC)
+	msgs, err := s.messageRepo.ListByChatID(ctx, chatID, 100, 0)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to list chat messages: %w", err)
+	}
+
+	// Apply sliding window: take up to maxHistory latest messages
+	if len(msgs) > maxHistory {
+		msgs = msgs[len(msgs)-maxHistory:]
+	}
+
+	chatMessages := make([]model.ChatMessage, 0, len(msgs)+1)
+	for _, m := range msgs {
+		chatMessages = append(chatMessages, model.ChatMessage{
+			Role:    m.Role,
+			Content: m.Content,
+		})
+	}
+
+	if strings.TrimSpace(newMsg) != "" {
+		chatMessages = append(chatMessages, model.ChatMessage{
+			Role:    "user",
+			Content: newMsg,
+		})
+	}
+
+	return chatMessages, chat, nil
 }
