@@ -11,7 +11,7 @@
 - [x] **Phase 3: Authentication & Referral System** - VK OAuth, JWT сессии, начисление 5 руб и реферальная программа (+2 руб) (completed 2026-09-08)
 - [x] **Phase 4: routerai.ru Integration & Billing Engine** - Клиент API, SSE стриминг, учет токенов и списание средств (completed 2026-09-09)
 
-- [ ] **Phase 5: Chat Management & Persistence** - Управление диалогами, сохранение истории сообщений и сборка контекста
+- [x] **Phase 5: Chat Management & Persistence** - Управление диалогами, сохранение истории сообщений и сборка контекста (completed 2026-09-09)
 - [ ] **Phase 6: Next.js Frontend Interface** - Веб-интерфейс чата, сайдбар, Markdown/код, выбор моделей, баланс и рефералы
 - [ ] **Phase 7: End-to-End Integration & Dokploy Deployment** - Сквозное тестирование, финализация Dockerfile и запуск в Dokploy
 
