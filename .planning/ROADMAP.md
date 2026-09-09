@@ -80,7 +80,6 @@ Plans:
 - [x] 03-02: Referral DAL, Code Generator & Transactional AuthService with Welcome and Referral Bonuses
 - [x] 03-03: VK OAuth Client, Mock Provider, HTTP Handlers, Server Integration & E2E Tests
 
-
 ### Phase 4: routerai.ru Integration & Billing Engine
 
 **Goal**: Интегрировать API routerai.ru, реализовать потоковый вывод ответов через Server-Sent Events (SSE) и биллинг списания токенов с баланса в PostgreSQL.
@@ -96,9 +95,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 04-01: Клиент API routerai.ru (каталог моделей, аутентификация, расчет стоимости)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-02: Эндпоинт стриминга чата на основе Server-Sent Events (SSE) в Go
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 04-03: Проверка баланса перед генерацией и атомарное списание за токены после завершения ответа
 
 ### Phase 5: Chat Management & Persistence
