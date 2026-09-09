@@ -70,3 +70,14 @@ func (s *Server) RegisterAuthRoutes(h *handler.AuthHandler, tokenManager auth.To
 		})
 	})
 }
+
+// RegisterLLMRoutes registers endpoints for models catalog and streaming chat.
+func (s *Server) RegisterLLMRoutes(h *handler.ChatHandler, tokenManager auth.TokenManager) {
+	s.Router.Route("/api/v1", func(r chi.Router) {
+		r.Group(func(pr chi.Router) {
+			pr.Use(appMiddleware.AuthMiddleware(tokenManager))
+			pr.Get("/models", h.GetModels)
+			pr.Post("/chat/stream", h.StreamChat)
+		})
+	})
+}

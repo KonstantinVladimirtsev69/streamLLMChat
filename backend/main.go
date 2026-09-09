@@ -12,6 +12,7 @@ import (
 
 	"backend/internal/auth"
 	"backend/internal/database"
+	"backend/internal/llm"
 	"backend/internal/repository/postgres"
 	"backend/internal/server"
 	"backend/internal/server/handler"
@@ -89,6 +90,27 @@ func main() {
 
 			srv.RegisterAuthRoutes(authHandler, tokenManager)
 			log.Println("Authentication and referral routes registered")
+
+			// Initialize LLM Provider & Chat routes
+			var llmProvider llm.Provider
+			routerAIKey := os.Getenv("ROUTERAI_API_KEY")
+			routerAIBaseURL := os.Getenv("ROUTERAI_BASE_URL")
+			if routerAIBaseURL == "" {
+				routerAIBaseURL = "https://routerai.ru/api/v1"
+			}
+
+			if routerAIKey == "" || os.Getenv("ROUTERAI_MOCK") == "true" {
+				log.Println("ROUTERAI_API_KEY is not set or ROUTERAI_MOCK=true; using MockLLMProvider")
+				llmProvider = llm.NewMockLLMProvider()
+			} else {
+				log.Printf("Initializing RouterAIClient with base URL: %s", routerAIBaseURL) //nolint:gosec
+				llmProvider = llm.NewRouterAIClient(routerAIKey, routerAIBaseURL, &http.Client{Timeout: 60 * time.Second})
+			}
+
+			modelCache := llm.NewModelCache(llmProvider, 15*time.Minute)
+			chatHandler := handler.NewChatHandler(llmProvider, modelCache)
+			srv.RegisterLLMRoutes(chatHandler, tokenManager)
+			log.Println("LLM models catalog and chat streaming routes registered")
 		}
 	}
 
