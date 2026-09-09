@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
-current_phase: 05
-current_phase_name: Chat Management & Persistence
+current_phase: 06
+current_phase_name: Next.js Frontend Interface
 status: ready_to_plan
-stopped_at: Phase 5 context gathered
-last_updated: "2026-09-09T18:55:00.000Z"
+stopped_at: Phase 5 completed
+last_updated: "2026-09-09T19:06:00.000Z"
 last_activity: 2026-09-09
-last_activity_desc: Phase 5 context gathered (ChatService, MongoDB persistence, sliding window and hybrid streaming)
-state_head: 18c9189
+last_activity_desc: Phase 5 executed and verified (Chat REST API, persistence, context window, stateful streaming)
+state_head: abae272
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 14
-  completed_plans: 12
-  percent: 85
+  completed_phases: 5
+  total_plans: 20
+  completed_plans: 14
+  percent: 70
 ---
 
 # Project State
@@ -23,20 +23,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Быстрый, надёжный веб-чат с LLM и прозрачной тарификацией за фактически израсходованные токены с баланса пользователя.
-**Current focus:** Phase 5: Chat Management & Persistence
+**Current focus:** Phase 6: Next.js Frontend Interface
 
 ## Current Position
 
-Phase: 05 (Chat Management & Persistence) — READY TO PLAN
-Plan: 0/2 plans created
+Phase: 06 (Next.js Frontend Interface) — READY TO PLAN
+Plan: 0/4 plans created
 Status: Ready to plan
-Last activity: 2026-09-09 — Phase 5 context gathered and decisions locked
+Last activity: 2026-09-09 — Phase 5 completed and verified
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 12
+- Total plans completed: 14
 - Average duration: - min
 - Total execution time: 0.0 hours
 
@@ -48,8 +48,8 @@ Last activity: 2026-09-09 — Phase 5 context gathered and decisions locked
 | 2. Database Layer & Data Models | 3/3 | Complete | - |
 | 3. Authentication & Referral System | 3/3 | Complete | - |
 | 4. routerai.ru Integration & Billing Engine | 3/3 | Complete | - |
-| 5. Chat Management & Persistence | 0/2 | Ready to plan | - |
-| 6. Next.js Frontend Interface | 0/4 | - | - |
+| 5. Chat Management & Persistence | 2/2 | Complete | - |
+| 6. Next.js Frontend Interface | 0/4 | Ready to plan | - |
 | 7. End-to-End Integration & Dokploy Deployment | 0/2 | - | - |
 
 **Recent Trend:**
