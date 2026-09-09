@@ -107,8 +107,9 @@ func main() {
 				llmProvider = llm.NewRouterAIClient(routerAIKey, routerAIBaseURL, &http.Client{Timeout: 60 * time.Second})
 			}
 
+			billingService := service.NewBillingService(balanceRepo)
 			modelCache := llm.NewModelCache(llmProvider, 15*time.Minute)
-			chatHandler := handler.NewChatHandler(llmProvider, modelCache)
+			chatHandler := handler.NewChatHandler(llmProvider, modelCache, billingService)
 			srv.RegisterLLMRoutes(chatHandler, tokenManager)
 			log.Println("LLM models catalog and chat streaming routes registered")
 		}

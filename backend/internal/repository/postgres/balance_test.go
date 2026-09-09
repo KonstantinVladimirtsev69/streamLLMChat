@@ -227,3 +227,79 @@ func TestTransactionRollbackOnPanicOrError(t *testing.T) {
 		t.Fatalf("expected ErrNotFound after rollback, got %v", err)
 	}
 }
+
+func TestBalanceDeductUsage_OverdraftAndLedger(t *testing.T) {
+	pool := getTestPool(t)
+	defer pool.Close()
+
+	ctx := context.Background()
+	userRepo := postgres.NewUserRepository(pool)
+	balanceRepo := postgres.NewBalanceRepository(pool)
+
+	uniqueVKID := time.Now().UnixNano()
+	user := &model.User{
+		VKID:      uniqueVKID,
+		FirstName: "Овердрафт",
+		LastName:  "Тест",
+		RefCode:   fmt.Sprintf("od_%d", uniqueVKID),
+	}
+	if err := userRepo.Create(ctx, user); err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+
+	// 1. Initial balance: 10 kopecks
+	if _, err := balanceRepo.AddBonus(ctx, user.ID, 10, model.TxWelcomeBonus, nil, "Старт 10 коп"); err != nil {
+		t.Fatalf("failed to seed balance: %v", err)
+	}
+
+	// 2. DeductUsage 0 kopecks: no-op, returns 10 kopecks
+	b0, err := balanceRepo.DeductUsage(ctx, user.ID, 0, model.TxTokenCharge, nil, "0 tokens")
+	if err != nil {
+		t.Fatalf("unexpected error on 0 kopecks deduct: %v", err)
+	}
+	if b0.AmountKopecks != 10 {
+		t.Errorf("expected 10 kopecks, got %d", b0.AmountKopecks)
+	}
+
+	// 3. DeductUsage 25 kopecks: overdraft from 10 to -15 kopecks
+	refID := "req_test_123"
+	b1, err := balanceRepo.DeductUsage(ctx, user.ID, 25, model.TxTokenCharge, &refID, "Списание за 50 токенов")
+	if err != nil {
+		t.Fatalf("unexpected error on overdraft deduct: %v", err)
+	}
+	if b1.AmountKopecks != -15 {
+		t.Errorf("expected balance -15, got %d", b1.AmountKopecks)
+	}
+
+	// 4. Verify balance persisted in DB
+	curBalance, err := balanceRepo.GetByUserID(ctx, user.ID)
+	if err != nil {
+		t.Fatalf("failed to get balance: %v", err)
+	}
+	if curBalance.AmountKopecks != -15 {
+		t.Errorf("expected persisted balance -15, got %d", curBalance.AmountKopecks)
+	}
+
+	// 5. Verify transactions ledger
+	txs, err := balanceRepo.GetTransactions(ctx, user.ID, 10, 0)
+	if err != nil {
+		t.Fatalf("failed to get transactions: %v", err)
+	}
+	if len(txs) != 2 {
+		t.Fatalf("expected 2 transactions (bonus + token_charge), got %d", len(txs))
+	}
+
+	chargeTx := txs[0]
+	if chargeTx.Type != model.TxTokenCharge {
+		t.Errorf("expected tx type %s, got %s", model.TxTokenCharge, chargeTx.Type)
+	}
+	if chargeTx.AmountKopecks != -25 {
+		t.Errorf("expected tx amount -25, got %d", chargeTx.AmountKopecks)
+	}
+	if chargeTx.BalanceAfterKopecks != -15 {
+		t.Errorf("expected balance after -15, got %d", chargeTx.BalanceAfterKopecks)
+	}
+	if chargeTx.ReferenceID == nil || *chargeTx.ReferenceID != refID {
+		t.Errorf("expected reference_id %s, got %v", refID, chargeTx.ReferenceID)
+	}
+}

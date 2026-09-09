@@ -71,3 +71,21 @@ func (c *ModelCache) GetModels(ctx context.Context) ([]model.LLMModel, error) {
 	copy(res, models)
 	return res, nil
 }
+
+// GetModelByID retrieves a single model from cache or static fallback.
+func (c *ModelCache) GetModelByID(ctx context.Context, id string) (*model.LLMModel, error) {
+	models, err := c.GetModels(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range models {
+		if m.ID == id {
+			return &m, nil
+		}
+	}
+	return &model.LLMModel{
+		ID:                   id,
+		PromptPricePer1M:     50.0,
+		CompletionPricePer1M: 100.0,
+	}, nil
+}

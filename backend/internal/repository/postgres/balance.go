@@ -137,6 +137,49 @@ func (r *balanceRepo) Deduct(ctx context.Context, userID int64, amount int64, tx
 	return &b, nil
 }
 
+// DeductUsage atomically debits token usage from user balance allowing overdraft (D-05), and records a ledger transaction.
+func (r *balanceRepo) DeductUsage(ctx context.Context, userID int64, amount int64, txType model.TransactionType, refID *string, description string) (*model.Balance, error) {
+	if amount < 0 {
+		return nil, fmt.Errorf("%w: deduction amount cannot be negative", model.ErrInvalidOperation)
+	}
+	if amount == 0 {
+		return r.GetByUserID(ctx, userID)
+	}
+
+	db := r.getDB(ctx)
+
+	// Atomic update without non-negative check to support overdraft for in-flight completions
+	updateQuery := `
+		UPDATE balances
+		SET amount_kopecks = amount_kopecks - $1,
+		    updated_at = NOW()
+		WHERE user_id = $2
+		RETURNING amount_kopecks, updated_at;
+	`
+
+	var b model.Balance
+	b.UserID = userID
+	err := db.QueryRow(ctx, updateQuery, amount, userID).Scan(&b.AmountKopecks, &b.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, model.ErrNotFound
+		}
+		return nil, fmt.Errorf("failed to deduct balance usage: %w", err)
+	}
+
+	txQuery := `
+		INSERT INTO balance_transactions (user_id, amount_kopecks, balance_after_kopecks, type, reference_id, description, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, NOW());
+	`
+
+	_, err = db.Exec(ctx, txQuery, userID, -amount, b.AmountKopecks, string(txType), refID, description)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert usage deduction transaction ledger: %w", err)
+	}
+
+	return &b, nil
+}
+
 // GetTransactions queries transaction history for a user.
 func (r *balanceRepo) GetTransactions(ctx context.Context, userID int64, limit, offset int) ([]model.BalanceTransaction, error) {
 	if limit <= 0 {

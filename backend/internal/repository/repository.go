@@ -21,6 +21,7 @@ type BalanceRepository interface {
 	GetByUserID(ctx context.Context, userID int64) (*model.Balance, error)
 	AddBonus(ctx context.Context, userID int64, amount int64, txType model.TransactionType, refID *string, description string) (*model.Balance, error)
 	Deduct(ctx context.Context, userID int64, amount int64, txType model.TransactionType, refID *string, description string) (*model.Balance, error)
+	DeductUsage(ctx context.Context, userID int64, amount int64, txType model.TransactionType, refID *string, description string) (*model.Balance, error)
 	GetTransactions(ctx context.Context, userID int64, limit, offset int) ([]model.BalanceTransaction, error)
 }
 
