@@ -67,7 +67,7 @@ func (f *fakeBillingService) ChargeTokens(ctx context.Context, userID int64, usa
 func setupChatTestRouterWithBilling(mock *llm.MockLLMProvider, billingSvc service.BillingService) (http.Handler, auth.TokenManager) {
 	tm, _ := auth.NewJWTTokenManager("super-secret-key-at-least-16-chars")
 	cache := llm.NewModelCache(mock, 15*time.Minute)
-	h := handler.NewChatHandler(mock, cache, billingSvc)
+	h := handler.NewChatHandler(mock, cache, billingSvc, nil)
 
 	r := chi.NewRouter()
 	r.Group(func(pr chi.Router) {

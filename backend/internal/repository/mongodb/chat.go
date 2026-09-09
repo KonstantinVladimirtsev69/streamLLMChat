@@ -106,6 +106,30 @@ func (r *chatRepo) UpdateTitle(ctx context.Context, id bson.ObjectID, userID int
 	return nil
 }
 
+// Touch updates updated_at and optionally the model of a chat.
+func (r *chatRepo) Touch(ctx context.Context, id bson.ObjectID, userID int64, modelName string) error {
+	filter := bson.D{
+		{Key: "_id", Value: id},
+		{Key: "user_id", Value: userID},
+	}
+	setFields := bson.D{
+		{Key: "updated_at", Value: time.Now()},
+	}
+	if modelName != "" {
+		setFields = append(setFields, bson.E{Key: "model", Value: modelName})
+	}
+	update := bson.D{{Key: "$set", Value: setFields}}
+
+	result, err := r.coll.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to touch chat: %w", err)
+	}
+	if result.MatchedCount == 0 {
+		return model.ErrNotFound
+	}
+	return nil
+}
+
 // Delete removes a chat by ID.
 func (r *chatRepo) Delete(ctx context.Context, id bson.ObjectID, userID int64) error {
 	filter := bson.D{

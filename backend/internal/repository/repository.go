@@ -31,6 +31,7 @@ type ChatRepository interface {
 	GetByID(ctx context.Context, id bson.ObjectID, userID int64) (*model.Chat, error)
 	ListByUserID(ctx context.Context, userID int64, limit, offset int64) ([]model.Chat, error)
 	UpdateTitle(ctx context.Context, id bson.ObjectID, userID int64, title string) error
+	Touch(ctx context.Context, id bson.ObjectID, userID int64, model string) error
 	Delete(ctx context.Context, id bson.ObjectID, userID int64) error
 }
 
@@ -45,4 +46,5 @@ type ReferralRepository interface {
 type MessageRepository interface {
 	Create(ctx context.Context, msg *model.Message) error
 	ListByChatID(ctx context.Context, chatID bson.ObjectID, limit, offset int64) ([]model.Message, error)
+	DeleteByChatID(ctx context.Context, chatID bson.ObjectID) error
 }

@@ -103,10 +103,14 @@ func TestChatAndMessageRepositories(t *testing.T) {
 		t.Errorf("unexpected message ordering or content")
 	}
 
-	// 4. Update title
+	// 4. Update title and Touch
 	newTitle := "Обновленный диалог"
 	if err := chatRepo.UpdateTitle(ctx, chat.ID, userID, newTitle); err != nil {
 		t.Fatalf("failed to update title: %v", err)
+	}
+
+	if err := chatRepo.Touch(ctx, chat.ID, userID, "anthropic/claude-3-5-sonnet"); err != nil {
+		t.Fatalf("failed to touch chat: %v", err)
 	}
 
 	updatedChat, err := chatRepo.GetByID(ctx, chat.ID, userID)
@@ -116,10 +120,25 @@ func TestChatAndMessageRepositories(t *testing.T) {
 	if updatedChat.Title != newTitle {
 		t.Fatalf("expected title '%s', got '%s'", newTitle, updatedChat.Title)
 	}
+	if updatedChat.Model != "anthropic/claude-3-5-sonnet" {
+		t.Fatalf("expected model anthropic/claude-3-5-sonnet, got '%s'", updatedChat.Model)
+	}
 
-	// 5. Delete chat
+	// 5. Delete chat and cascade delete messages
 	if err := chatRepo.Delete(ctx, chat.ID, userID); err != nil {
 		t.Fatalf("failed to delete chat: %v", err)
+	}
+
+	if err := msgRepo.DeleteByChatID(ctx, chat.ID); err != nil {
+		t.Fatalf("failed to cascade delete messages: %v", err)
+	}
+
+	remainingMsgs, err := msgRepo.ListByChatID(ctx, chat.ID, 10, 0)
+	if err != nil {
+		t.Fatalf("failed to list messages after cascade delete: %v", err)
+	}
+	if len(remainingMsgs) != 0 {
+		t.Fatalf("expected 0 messages after cascade delete, got %d", len(remainingMsgs))
 	}
 
 	_, err = chatRepo.GetByID(ctx, chat.ID, userID)

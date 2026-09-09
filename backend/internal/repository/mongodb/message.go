@@ -63,3 +63,13 @@ func (r *messageRepo) ListByChatID(ctx context.Context, chatID bson.ObjectID, li
 	}
 	return messages, nil
 }
+
+// DeleteByChatID deletes all messages associated with the specified chat ID.
+func (r *messageRepo) DeleteByChatID(ctx context.Context, chatID bson.ObjectID) error {
+	filter := bson.D{{Key: "chat_id", Value: chatID}}
+	_, err := r.coll.DeleteMany(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("failed to delete messages for chat: %w", err)
+	}
+	return nil
+}

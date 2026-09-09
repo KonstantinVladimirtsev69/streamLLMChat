@@ -13,6 +13,7 @@ import (
 	"backend/internal/auth"
 	"backend/internal/database"
 	"backend/internal/llm"
+	"backend/internal/repository/mongodb"
 	"backend/internal/repository/postgres"
 	"backend/internal/server"
 	"backend/internal/server/handler"
@@ -35,7 +36,7 @@ func main() {
 
 	srv := server.New()
 
-	// Initialize PostgreSQL if DATABASE_URL is configured
+	var mongoClient *mongo.Client
 	var pgPool *pgxpool.Pool
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
 		if err := database.Up(dbURL); err != nil {
@@ -87,9 +88,32 @@ func main() {
 				FrontendURL:  frontendURL,
 				CookieSecure: cookieSecure,
 			})
-
 			srv.RegisterAuthRoutes(authHandler, tokenManager)
 			log.Println("Authentication and referral routes registered")
+
+			// Initialize MongoDB repositories if MONGODB_URI is configured
+			var chatService service.ChatService
+			mongoURI := os.Getenv("MONGODB_URI")
+			if mongoURI != "" {
+				client, err := database.NewMongoClient(ctx, mongoURI)
+				if err != nil {
+					log.Printf("Warning: failed to connect to mongodb: %v", err)
+				} else {
+					mongoClient = client
+					dbName := os.Getenv("MONGO_DB")
+					if dbName == "" {
+						dbName = "llmchat"
+					}
+					if err := database.EnsureIndexes(ctx, client.Database(dbName)); err != nil {
+						log.Printf("Warning: failed to ensure mongodb indexes: %v", err)
+					}
+					log.Println("MongoDB connection and indexes initialized")
+
+					chatRepo := mongodb.NewChatRepository(client.Database(dbName))
+					msgRepo := mongodb.NewMessageRepository(client.Database(dbName))
+					chatService = service.NewChatService(chatRepo, msgRepo)
+				}
+			}
 
 			// Initialize LLM Provider & Chat routes
 			var llmProvider llm.Provider
@@ -109,28 +133,9 @@ func main() {
 
 			billingService := service.NewBillingService(balanceRepo)
 			modelCache := llm.NewModelCache(llmProvider, 15*time.Minute)
-			chatHandler := handler.NewChatHandler(llmProvider, modelCache, billingService)
-			srv.RegisterLLMRoutes(chatHandler, tokenManager)
-			log.Println("LLM models catalog and chat streaming routes registered")
-		}
-	}
-
-	// Initialize MongoDB if MONGODB_URI is configured
-	var mongoClient *mongo.Client
-	if mongoURI := os.Getenv("MONGODB_URI"); mongoURI != "" {
-		client, err := database.NewMongoClient(ctx, mongoURI)
-		if err != nil {
-			log.Printf("Warning: failed to connect to mongodb: %v", err)
-		} else {
-			mongoClient = client
-			dbName := os.Getenv("MONGO_DB")
-			if dbName == "" {
-				dbName = "llmchat"
-			}
-			if err := database.EnsureIndexes(ctx, client.Database(dbName)); err != nil {
-				log.Printf("Warning: failed to ensure mongodb indexes: %v", err)
-			}
-			log.Println("MongoDB connection and indexes initialized")
+			chatHandler := handler.NewChatHandler(llmProvider, modelCache, billingService, chatService)
+			srv.RegisterChatRoutes(chatHandler, tokenManager)
+			log.Println("LLM models catalog, chat session CRUD, and streaming routes registered")
 		}
 	}
 
