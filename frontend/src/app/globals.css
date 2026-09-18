@@ -38,18 +38,6 @@
   --font-mono: var(--font-jetbrains-mono), monospace;
 }
 
-@theme inline {
-  --color-bg: var(--color-bg);
-  --color-surface-base: var(--color-surface-base);
-  --color-surface: var(--color-surface);
-  --color-surface-raised: var(--color-surface-raised);
-  --color-surface-hover: var(--color-surface-hover);
-  --color-border-subtle: var(--color-border-subtle);
-  --color-border: var(--color-border);
-  --color-primary: var(--color-primary);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
