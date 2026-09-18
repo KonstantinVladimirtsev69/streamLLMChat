@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sketch 001: Chat Workspace Variants</title>
+  <link rel="stylesheet" href="../themes/default.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       Global Sketch Layout & Reset
+       ========================================================================== */
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-sans);
+      margin: 0;
+      padding-top: 52px; /* For top variant navigation */
+      overflow-x: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Variant Nav Bar */
+    #variant-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      z-index: 9998;
+      background: rgba(15, 17, 24, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    .nav-badge {
+      font-size: var(--text-2xs);
+      font-family: var(--font-mono);
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 2px 6px;
+      border-radius: var(--radius-xs);
+      text-transform: uppercase;
+    }
+
+    .tabs-group {
+      display: flex;
+      gap: var(--space-2);
+    }
+    .variant-tab {
+      background: transparent;
+      border: 1px solid var(--color-border-subtle);
+      color: var(--color-text-secondary);
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+      font-size: var(--text-xs);
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .variant-tab:hover {
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      border-color: var(--color-border);
+    }
+    .variant-tab.active {
+      background: var(--color-primary-gradient);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
+      font-weight: 600;
+    }
+
+    /* Sketch Canvas Wrap (controls viewport preview) */
+    #sketch-viewport-wrapper {
+      flex: 1;
+      width: 100%;
+      height: calc(100vh - 52px);
+      margin: 0 auto;
+      transition: max-width 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .variant-view {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    .variant-view.active {
+      display: flex;
+    }
+
+    /* Common App Elements */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: 8px 14px;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition-fast);
+      font-family: inherit;
+      outline: none;
+    }
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+      box-shadow: var(--glow-primary);
+    }
+    .btn-secondary {
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      border-color: var(--color-border);
+    }
+    .btn-secondary:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-border-hover);
+    }
+    .btn-danger {
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+    .btn-danger:hover {
+      background: rgba(244, 63, 94, 0.25);
+    }
+
+    /* Balance Chip in Header */
+    .balance-chip {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 5px 10px;
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: #34d399;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .balance-chip:hover {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: #34d399;
+      box-shadow: 0 0 12px rgba(52, 211, 153, 0.25);
+    }
+    .balance-add-bonus {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border-radius: var(--radius-full);
+      padding: 2px 6px;
+      font-size: var(--text-2xs);
+      margin-left: 2px;
+    }
+
+    /* Model Selector Dropdown */
+    .model-selector {
+      position: relative;
+    }
+    .model-selector-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--color-surface-raised);
+      border: 1px solid var(--color-border);
+      padding: 6px 12px;
+      border-radius: var(--radius-md);
+      font-size: var(--text-xs);
+      color: var(--color-text);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .model-selector-trigger:hover {
+      border-color: var(--color-primary);
+    }
+    .model-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--color-accent-emerald);
+      box-shadow: 0 0 6px var(--color-accent-emerald);
+    }
+    .model-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      width: 260px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      padding: 6px;
+    }
+    .model-dropdown-menu.open {
+      display: block;
+      animation: fadeIn 0.15s ease;
+    }
+    .model-option {
+      display: flex;
+      flex-direction: column;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .model-option:hover {
+      background: var(--color-surface-hover);
+    }
+    .model-option.active {
+      background: var(--color-primary-light);
+      border-left: 2px solid var(--color-primary);
+    }
+    .model-name-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    .model-meta-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--text-2xs);
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* Markdown Code Block Component */
+    .code-block {
+      background: #06070a;
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      margin: var(--space-3) 0;
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      color: var(--color-text-muted);
+    }
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      font-size: var(--text-2xs);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 7px;
+      border-radius: var(--radius-xs);
+      transition: var(--transition-fast);
+    }
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--color-text);
+    }
+    .copy-btn.copied {
+      color: var(--color-accent-emerald);
+    }
+    .code-content {
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      line-height: 1.6;
+      color: #e2e8f0;
+      margin: 0;
+      overflow-x: auto;
+    }
+
+    /* Message Bubbles */
+    .msg-row {
+      display: flex;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+      width: 100%;
+    }
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: var(--text-xs);
+      flex-shrink: 0;
+    }
+    .avatar-user {
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: #fff;
+    }
+    .avatar-ai {
+      background: var(--color-surface-raised);
+      border: 1px solid var(--color-border);
+      color: var(--color-primary);
+    }
+    .msg-body {
+      flex: 1;
+      font-size: var(--text-base);
+      line-height: 1.65;
+    }
+    .msg-author {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .msg-meta-cost {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      color: var(--color-text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 1px 6px;
+      border-radius: var(--radius-xs);
+    }
+
+    /* Typing cursor */
+    .cursor-blink {
+      display: inline-block;
+      width: 6px;
+      height: 14px;
+      background: var(--color-primary);
+      margin-left: 3px;
+      animation: blink 0.8s infinite;
+      vertical-align: middle;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==========================================================================
+       VARIANT A: Classic Clean Layout
+       ========================================================================== */
+    #variant-a {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    .va-sidebar {
+      width: 260px;
+      background: var(--color-surface-base);
+      border-right: 1px solid var(--color-border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .va-sidebar-header {
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+    .va-new-chat-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: 10px;
+      background: var(--color-surface-raised);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .va-new-chat-btn:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-primary);
+    }
+    .va-chat-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-2) var(--space-3);
+    }
+    .va-chat-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      margin-bottom: 2px;
+    }
+    .va-chat-item:hover {
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+    .va-chat-item.active {
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      border: 1px solid var(--color-border-subtle);
+      font-weight: 500;
+    }
+    .va-chat-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
+    }
+    .va-delete-icon {
+      opacity: 0;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .va-chat-item:hover .va-delete-icon {
+      opacity: 1;
+    }
+    .va-delete-icon:hover {
+      color: var(--color-danger);
+    }
+    .va-sidebar-footer {
+      padding: var(--space-3) var(--space-4);
+      border-top: 1px solid var(--color-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .va-user-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      font-weight: 500;
+    }
+
+    /* Main Area (Classic) */
+    .va-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+      position: relative;
+    }
+    .va-header {
+      height: 56px;
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding: 0 var(--space-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(9, 10, 15, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+    .va-messages-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-6) var(--space-4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .va-messages-container {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    /* Bottom Input (Classic) */
+    .va-input-wrapper {
+      padding: var(--space-4) var(--space-6);
+      display: flex;
+      justify-content: center;
+      background: linear-gradient(to top, var(--color-bg) 75%, transparent);
+    }
+    .va-input-box {
+      width: 100%;
+      max-width: 800px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: var(--shadow-md);
+      transition: var(--transition-fast);
+    }
+    .va-input-box:focus-within {
+      border-color: var(--color-primary);
+      box-shadow: var(--glow-primary);
+    }
+    .va-textarea {
+      background: transparent;
+      border: none;
+      color: var(--color-text);
+      font-size: var(--text-base);
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      min-height: 44px;
+      max-height: 140px;
+      line-height: 1.5;
+    }
+    .va-input-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .va-token-estimate {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      color: var(--color-text-muted);
+    }
+
+    /* ==========================================================================
+       VARIANT B: Floating Minimalist (Linear style)
+       ========================================================================== */
+    #variant-b {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    .vb-rail {
+      width: 60px;
+      background: var(--color-surface-base);
+      border-right: 1px solid var(--color-border-subtle);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-3) 0;
+      gap: var(--space-4);
+      flex-shrink: 0;
+    }
+    .vb-rail-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-secondary);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+    .vb-rail-btn:hover {
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      border-color: var(--color-border-subtle);
+    }
+    .vb-rail-btn.active {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .vb-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .vb-chat-stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-8) var(--space-6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .vb-stream-inner {
+      width: 100%;
+      max-width: 900px;
+    }
+    /* Floating Dock at Bottom */
+    .vb-floating-dock {
+      position: absolute;
+      bottom: var(--space-6);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 760px;
+      background: rgba(20, 23, 36, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius-xl);
+      padding: 10px 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .vb-dock-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 6px;
+    }
+
+    /* ==========================================================================
+       VARIANT C: Pro Split Workspace (Cursor / IDE style)
+       ========================================================================== */
+    #variant-c {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    .vc-sidebar {
+      width: 240px;
+      background: #0c0e14;
+      border-right: 1px solid var(--color-border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .vc-chat-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+      border-right: 1px solid var(--color-border-subtle);
+    }
+    .vc-inspector {
+      width: 280px;
+      background: var(--color-surface-base);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      padding: var(--space-4);
+      gap: var(--space-4);
+      overflow-y: auto;
+    }
+    .vc-telemetry-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+    }
+    .vc-telemetry-title {
+      font-size: var(--text-2xs);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-2);
+    }
+    .vc-stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--text-xs);
+      margin-bottom: 4px;
+    }
+    .vc-stat-val {
+      font-family: var(--font-mono);
+      color: var(--color-accent-blue);
+      font-weight: 500;
+    }
+
+    /* ==========================================================================
+       Interactive Referral Modal Component
+       ========================================================================== */
+    #referral-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+    }
+    #referral-modal-overlay.open {
+      display: flex;
+      animation: modalFadeIn 0.2s ease;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .ref-modal-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      width: 90%;
+      max-width: 480px;
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+    .ref-close-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .ref-header {
+      text-align: center;
+      margin-bottom: var(--space-4);
+    }
+    .ref-header h3 {
+      margin: 0;
+      font-size: var(--text-lg);
+      font-weight: 700;
+    }
+    .ref-header p {
+      margin: 6px 0 0;
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+    }
+    .ref-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .ref-stat-box {
+      background: var(--color-surface-raised);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+    .ref-stat-num {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: #34d399;
+      font-family: var(--font-mono);
+    }
+    .ref-stat-lbl {
+      font-size: var(--text-2xs);
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+    .ref-input-group {
+      display: flex;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+    .ref-url-input {
+      flex: 1;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      outline: none;
+    }
+
+    /* ==========================================================================
+       Floating Sketch Toolbar (Controls viewports, notes)
+       ========================================================================== */
+    #sketch-tools {
+      position: fixed;
+      bottom: 14px;
+      right: 14px;
+      z-index: 9999;
+      font-family: var(--font-sans);
+      font-size: var(--text-xs);
+      background: rgba(15, 17, 24, 0.92);
+      border: 1px solid var(--color-border);
+      color: white;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .viewport-btn {
+      background: var(--color-surface-raised);
+      border: 1px solid var(--color-border-subtle);
+      color: var(--color-text-secondary);
+      padding: 4px 8px;
+      border-radius: var(--radius-xs);
+      cursor: pointer;
+      font-size: var(--text-2xs);
+    }
+    .viewport-btn.active {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    /* Zero balance alert banner */
+    .insufficient-balance-banner {
+      display: none;
+      background: var(--color-danger-bg);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      color: #fda4af;
+      font-size: var(--text-xs);
+      margin-bottom: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .insufficient-balance-banner.show {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Multi-Variant Switcher Bar -->
+  <header id="variant-nav">
+    <div class="nav-brand">
+      <span>routerai.ru</span>
+      <span class="nav-badge">Sketch 001</span>
+    </div>
+
+    <div class="tabs-group">
+      <button class="variant-tab active" onclick="switchVariant('a')">
+        <span>Вариант A: Classic Clean ★ Выбран</span>
+      </button>
+      <button class="variant-tab" onclick="switchVariant('b')">
+        <span>Вариант B: Floating Minimalist</span>
+      </button>
+      <button class="variant-tab" onclick="switchVariant('c')">
+        <span>Вариант C: Pro Split Canvas</span>
+      </button>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="btn btn-secondary" style="padding:4px 10px; font-size:11px;" onclick="openReferralModal()">
+        🎁 Рефералы (+2 ₽)
+      </button>
+      <div id="top-user-avatar" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">
+        КВ
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Viewport Wrap -->
+  <main id="sketch-viewport-wrapper">
+
+    <!-- ====================================================================
+         VARIANT A: Classic Clean Layout
+         ==================================================================== -->
+    <div id="variant-a" class="variant-view active">
+      <!-- Left Sidebar -->
+      <aside class="va-sidebar">
+        <div class="va-sidebar-header">
+          <button class="va-new-chat-btn" onclick="triggerNewChat()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Новый диалог</span>
+          </button>
+        </div>
+
+        <div class="va-chat-list" id="chat-list-a">
+          <div class="va-chat-item active">
+            <span class="va-chat-title">REST API архитектура Go</span>
+            <span class="va-delete-icon" onclick="deleteChat(this)">✕</span>
+          </div>
+          <div class="va-chat-item">
+            <span class="va-chat-title">Оптимизация Next.js SSE</span>
+            <span class="va-delete-icon" onclick="deleteChat(this)">✕</span>
+          </div>
+          <div class="va-chat-item">
+            <span class="va-chat-title">Реферальная программа</span>
+            <span class="va-delete-icon" onclick="deleteChat(this)">✕</span>
+          </div>
+        </div>
+
+        <div class="va-sidebar-footer">
+          <div class="va-user-info">
+            <div style="width:24px;height:24px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:10px;">ВК</div>
+            <span>Константин</span>
+          </div>
+          <span style="font-size:11px;color:var(--color-text-muted);cursor:pointer;" onclick="alert('Выход из аккаунта (очистка auth_token)')">Выйти</span>
+        </div>
+      </aside>
+
+      <!-- Main Chat Area -->
+      <section class="va-main">
+        <header class="va-header">
+          <!-- Active Model Selector -->
+          <div class="model-selector">
+            <div class="model-selector-trigger" onclick="toggleModelDropdown('a')">
+              <div class="model-dot"></div>
+              <span id="current-model-a">Claude 3.5 Sonnet</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+
+            <div class="model-dropdown-menu" id="model-dropdown-a">
+              <div class="model-option active" onclick="selectModel('a', 'Claude 3.5 Sonnet', '0.24 ₽ / 1K')">
+                <div class="model-name-row"><span>Claude 3.5 Sonnet</span><span>★ Top</span></div>
+                <div class="model-meta-row"><span>Anthropic · 200k context</span><span>0.24 ₽/1k</span></div>
+              </div>
+              <div class="model-option" onclick="selectModel('a', 'GPT-4o Mini', '0.04 ₽ / 1K')">
+                <div class="model-name-row"><span>GPT-4o Mini</span><span>Быстрый</span></div>
+                <div class="model-meta-row"><span>OpenAI · 128k context</span><span>0.04 ₽/1k</span></div>
+              </div>
+              <div class="model-option" onclick="selectModel('a', 'DeepSeek Chat', '0.02 ₽ / 1K')">
+                <div class="model-name-row"><span>DeepSeek V3</span><span>Эконом</span></div>
+                <div class="model-meta-row"><span>DeepSeek · 64k context</span><span>0.02 ₽/1k</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Header Balance Chip -->
+          <div class="balance-chip" onclick="openReferralModal()">
+            <span>Баланс:</span>
+            <span id="user-balance-val">5.00 ₽</span>
+            <span class="balance-add-bonus">+2 ₽ друг</span>
+          </div>
+        </header>
+
+        <!-- Messages Scroll View -->
+        <div class="va-messages-scroll" id="messages-scroll-a">
+          <div class="va-messages-container" id="messages-container-a">
+            <!-- User message -->
+            <div class="msg-row">
+              <div class="msg-avatar avatar-user">К</div>
+              <div class="msg-body">
+                <div class="msg-author">Вы</div>
+                <div>Напиши пример реализации SSE стриминга на Go с поддержкой контекстного прерывания соединения.</div>
+              </div>
+            </div>
+
+            <!-- Assistant message with Code -->
+            <div class="msg-row">
+              <div class="msg-avatar avatar-ai">AI</div>
+              <div class="msg-body">
+                <div class="msg-author">
+                  <span>Claude 3.5 Sonnet</span>
+                  <span class="msg-meta-cost">124 токена · 0.03 ₽</span>
+                </div>
+                <p>Вот типовой пример HTTP-хэндлера для Server-Sent Events в Go с использованием <code>http.Flusher</code> и контекста запроса:</p>
+                
+                <div class="code-block">
+                  <div class="code-header">
+                    <span>go</span>
+                    <button class="copy-btn" onclick="copyCode(this)">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      <span>Копировать</span>
+                    </button>
+                  </div>
+                  <pre class="code-content">func StreamHandler(w http.ResponseWriter, r *http.Request) {
+    flusher, ok := w.(http.Flusher)
+    if !ok {
+        http.Error(w, "Streaming unsupported", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "text/event-stream")
+    w.Header().Set("Cache-Control", "no-cache")
+    w.Header().Set("Connection", "keep-alive")
+
+    for i := 1; i <= 5; i++ {
+        select {
+        case <-r.Context().Done():
+            // Клиент прервал соединение
+            return
+        default:
+            fmt.Fprintf(w, "data: chunk %d\n\n", i)
+            flusher.Flush()
+            time.Sleep(200 * time.Millisecond)
+        }
+    }
+}</pre>
+                </div>
+
+                <p>В случае обрыва соединения клиентом вызов <code><-r.Context().Done()</code> сработает мгновенно, предотвращая утечки горутин.</p>
+              </div>
+            </div>
+
+            <!-- Dynamic streaming placeholder -->
+            <div class="msg-row" id="streaming-row-a" style="display:none;">
+              <div class="msg-avatar avatar-ai">AI</div>
+              <div class="msg-body">
+                <div class="msg-author">
+                  <span id="stream-model-badge-a">Claude 3.5 Sonnet</span>
+                  <span class="msg-meta-cost">Стриминг...</span>
+                </div>
+                <div id="stream-output-text-a"></div><span class="cursor-blink"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Input Area -->
+        <div class="va-input-wrapper">
+          <div class="va-input-box">
+            <!-- Insufficient balance alert banner -->
+            <div class="insufficient-balance-banner" id="balance-alert-a">
+              <span>⚠️ Баланс исчерпан (0.00 ₽). Пополните баланс бесплатными бонусами за приглашение друзей!</span>
+              <button class="btn btn-primary" style="padding:3px 8px;font-size:11px;" onclick="openReferralModal()">Пригласить (+2 ₽)</button>
+            </div>
+
+            <textarea class="va-textarea" id="prompt-input-a" placeholder="Спросите что-нибудь у модели... (Enter для отправки)"></textarea>
+            
+            <div class="va-input-actions">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="va-token-estimate">~35 символов · оценка: 0.01 ₽</span>
+                <button class="btn btn-secondary" style="padding:2px 8px;font-size:10px;" onclick="toggleZeroBalanceState()">
+                  Переключить баланс 0₽ / 5₽
+                </button>
+              </div>
+
+              <div style="display:flex; gap:8px;">
+                <button id="send-btn-a" class="btn btn-primary" onclick="startSimulatedStreaming('a')">
+                  <span>Отправить</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                </button>
+                <button id="stop-btn-a" class="btn btn-danger" style="display:none;" onclick="stopStreaming('a')">
+                  <span>Остановить</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ====================================================================
+         VARIANT B: Floating Minimalist (Linear style)
+         ==================================================================== -->
+    <div id="variant-b" class="variant-view">
+      <!-- Thin Rail -->
+      <aside class="vb-rail">
+        <div style="font-weight:700; font-size:14px; color:var(--color-primary);">R</div>
+        <button class="vb-rail-btn active" title="Текущий диалог">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </button>
+        <button class="vb-rail-btn" title="История диалогов" onclick="alert('История открыта в боковом поповере')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </button>
+        <button class="vb-rail-btn" title="Реферальная программа" onclick="openReferralModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </button>
+      </aside>
+
+      <!-- Main Stream with floating dock -->
+      <section class="vb-content">
+        <div class="vb-chat-stream">
+          <div class="vb-stream-inner">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; padding-bottom:12px; border-bottom:1px solid var(--color-border-subtle);">
+              <div>
+                <h2 style="margin:0; font-size:var(--text-lg); font-weight:600;">Минималистичный режим холста</h2>
+                <span style="font-size:12px; color:var(--color-text-muted);">Без перегруженных сайдбаров, фокус на тексте и генерации</span>
+              </div>
+              <div class="balance-chip" onclick="openReferralModal()">5.00 ₽</div>
+            </div>
+
+            <!-- Example message -->
+            <div class="msg-row">
+              <div class="msg-avatar avatar-user">К</div>
+              <div class="msg-body">
+                <div class="msg-author">Вы</div>
+                <div>Объясни преимущество Server-Sent Events перед WebSocket для текстовых LLM.</div>
+              </div>
+            </div>
+
+            <div class="msg-row">
+              <div class="msg-avatar avatar-ai">AI</div>
+              <div class="msg-body">
+                <div class="msg-author">DeepSeek V3 <span class="msg-meta-cost">0.01 ₽</span></div>
+                <p>Ключевые преимущества SSE (Server-Sent Events) для LLM-чатов:</p>
+                <ul>
+                  <li><strong>Однонаправленность:</strong> стриминг идет только от сервера клиенту, что идеально подходит под модель «один запрос — непрерывный поток токенов».</li>
+                  <li><strong>HTTP/2 совместимость:</strong> мультиплексирование соединений из коробки без накладных расходов на WebSocket handshake.</li>
+                  <li><strong>Встроенная поддержка авто-переподключения:</strong> стандарт браузерного EventSource автоматически восстанавливает соединение при микросбоях.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Dock Controls -->
+        <div class="vb-floating-dock">
+          <div class="vb-dock-top">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:11px; color:var(--color-text-muted);">Модель:</span>
+              <span style="font-size:12px; font-weight:600; color:var(--color-primary);">Claude 3.5 Sonnet</span>
+            </div>
+            <span style="font-size:11px; color:var(--color-accent-emerald); font-weight:500;">5.00 ₽ доступно</span>
+          </div>
+          <textarea class="va-textarea" style="min-height:36px;" placeholder="Введите сообщение в минималистичном доке..."></textarea>
+          <div style="display:flex; justify-content:flex-end;">
+            <button class="btn btn-primary" style="padding:6px 14px; border-radius:var(--radius-full);">Отправить</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ====================================================================
+         VARIANT C: Pro Split Canvas (Cursor style with Inspector)
+         ==================================================================== -->
+    <div id="variant-c" class="variant-view">
+      <!-- Left Dialogues -->
+      <aside class="vc-sidebar">
+        <div style="padding:14px; border-bottom:1px solid var(--color-border-subtle); display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--color-text-muted);">Сессии чата</span>
+          <button class="btn btn-primary" style="padding:3px 7px; font-size:11px;" onclick="triggerNewChat()">+ Нов</button>
+        </div>
+        <div class="va-chat-list">
+          <div class="va-chat-item active">Архитектура Go REST</div>
+          <div class="va-chat-item">SSE стриминг Next.js</div>
+          <div class="va-chat-item">Биллинг и тарифы</div>
+        </div>
+      </aside>
+
+      <!-- Center Chat -->
+      <section class="vc-chat-panel">
+        <div style="flex:1; overflow-y:auto; padding:24px;">
+          <div class="msg-row">
+            <div class="msg-avatar avatar-ai">AI</div>
+            <div class="msg-body">
+              <div class="msg-author">Интерфейс профессиональной консоли (Pro Split)</div>
+              <p>В этом варианте справа постоянно открыта панель инспектора с телеметрией генерации, расходом токенов и виджетом баланса/рефералов.</p>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px; border-top:1px solid var(--color-border-subtle);">
+          <div class="va-input-box" style="max-width:100%;">
+            <textarea class="va-textarea" placeholder="Сообщение в Pro-консоли..."></textarea>
+            <div class="va-input-actions">
+              <span class="va-token-estimate">Телеметрия активна</span>
+              <button class="btn btn-primary">Отправить</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Inspector Panel -->
+      <aside class="vc-inspector">
+        <div class="vc-telemetry-card">
+          <div class="vc-telemetry-title">Активная модель</div>
+          <div style="font-size:14px; font-weight:700; color:var(--color-text); margin-bottom:8px;">Claude 3.5 Sonnet</div>
+          <div class="vc-stat-row"><span>Провайдер:</span><span class="vc-stat-val">Anthropic</span></div>
+          <div class="vc-stat-row"><span>Контекст:</span><span class="vc-stat-val">200K токенов</span></div>
+          <div class="vc-stat-row"><span>Входные токены:</span><span class="vc-stat-val">0.24 ₽ / 1K</span></div>
+          <div class="vc-stat-row"><span>Выходные токены:</span><span class="vc-stat-val">1.20 ₽ / 1K</span></div>
+        </div>
+
+        <div class="vc-telemetry-card">
+          <div class="vc-telemetry-title">Биллинг & Баланс</div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+            <span style="font-size:20px; font-weight:700; color:#34d399;">5.00 ₽</span>
+            <span style="font-size:11px; color:var(--color-text-muted);">хватит на ~25K токенов</span>
+          </div>
+          <button class="btn btn-secondary" style="width:100%; font-size:12px;" onclick="openReferralModal()">
+            🎁 Получить +2 ₽ за друга
+          </button>
+        </div>
+
+        <div class="vc-telemetry-card">
+          <div class="vc-telemetry-title">Скользящее окно памяти</div>
+          <div class="vc-stat-row"><span>История:</span><span class="vc-stat-val">20 сообщений</span></div>
+          <div class="vc-stat-row"><span>Хранилище:</span><span class="vc-stat-val">MongoDB ACID</span></div>
+        </div>
+      </aside>
+    </div>
+
+  </main>
+
+  <!-- ====================================================================
+       Referral Program Modal
+       ==================================================================== -->
+  <div id="referral-modal-overlay" onclick="closeReferralModal(event)">
+    <div class="ref-modal-card" onclick="event.stopPropagation()">
+      <button class="ref-close-btn" onclick="closeReferralModal()">✕</button>
+      
+      <div class="ref-header">
+        <div style="width:44px; height:44px; border-radius:50%; background:var(--color-primary-light); color:var(--color-primary); display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:20px;">
+          🎁
+        </div>
+        <h3>Реферальная программа</h3>
+        <p>Приглашайте друзей и получайте по <strong>+2.00 ₽</strong> на баланс за каждого зарегистрированного пользователя!</p>
+      </div>
+
+      <div class="ref-stats-grid">
+        <div class="ref-stat-box">
+          <div class="ref-stat-num">3</div>
+          <div class="ref-stat-lbl">Приглашено друзей</div>
+        </div>
+        <div class="ref-stat-box">
+          <div class="ref-stat-num">+6.00 ₽</div>
+          <div class="ref-stat-lbl">Заработано бонусов</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:6px; font-size:12px; font-weight:600; color:var(--color-text-secondary);">
+        Ваша персональная ссылка:
+      </div>
+      <div class="ref-input-group">
+        <input type="text" class="ref-url-input" id="ref-link-val" value="https://routerai.ru/?ref=KV794X" readonly>
+        <button class="btn btn-primary" id="copy-ref-btn" onclick="copyReferralLink()">
+          <span>Копировать</span>
+        </button>
+      </div>
+
+      <div style="font-size:11px; color:var(--color-text-muted); text-align:center; line-height:1.4;">
+        Друг получает приветственные 5.00 ₽ при входе через VK ID, а вы сразу получаете 2.00 ₽ на генерацию токенов.
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       Floating Sketch Toolbar (Viewport Switcher)
+       ==================================================================== -->
+  <div id="sketch-tools">
+    <span style="color:var(--color-text-muted);">Разрешение:</span>
+    <button class="viewport-btn active" onclick="setViewport('100%', this)">Full</button>
+    <button class="viewport-btn" onclick="setViewport('1280px', this)">Desktop (1280)</button>
+    <button class="viewport-btn" onclick="setViewport('768px', this)">Tablet (768)</button>
+    <button class="viewport-btn" onclick="setViewport('375px', this)">Mobile (375)</button>
+  </div>
+
+  <!-- ====================================================================
+       JavaScript Interactivity & Stream Simulation
+       ==================================================================== -->
+  <script>
+    let currentBalance = 5.00;
+    let streamInterval = null;
+
+    // Switch between Variant A, B, C
+    function switchVariant(variantId) {
+      document.querySelectorAll('.variant-view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+      
+      const target = document.getElementById('variant-' + variantId);
+      if (target) target.classList.add('active');
+      
+      const tabIndex = { 'a': 0, 'b': 1, 'c': 2 }[variantId];
+      document.querySelectorAll('.variant-tab')[tabIndex].classList.add('active');
+    }
+
+    // Viewport resize helper
+    function setViewport(width, btn) {
+      document.getElementById('sketch-viewport-wrapper').style.maxWidth = width;
+      document.querySelectorAll('.viewport-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // Model dropdown toggle
+    function toggleModelDropdown(variant) {
+      const menu = document.getElementById('model-dropdown-' + variant);
+      if (menu) menu.classList.toggle('open');
+    }
+
+    function selectModel(variant, name, price) {
+      document.getElementById('current-model-' + variant).innerText = name;
+      const menu = document.getElementById('model-dropdown-' + variant);
+      if (menu) menu.classList.remove('open');
+    }
+
+    // Referral Modal Controls
+    function openReferralModal() {
+      document.getElementById('referral-modal-overlay').classList.add('open');
+    }
+    function closeReferralModal(e) {
+      document.getElementById('referral-modal-overlay').classList.remove('open');
+    }
+    function copyReferralLink() {
+      const linkInput = document.getElementById('ref-link-val');
+      navigator.clipboard.writeText(linkInput.value).then(() => {
+        const btn = document.getElementById('copy-ref-btn');
+        const origText = btn.innerHTML;
+        btn.innerHTML = '<span>✓ Скопировано!</span>';
+        btn.style.background = 'var(--color-accent-emerald)';
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.style.background = '';
+        }, 2000);
+      });
+    }
+
+    // Code copy with feedback
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block').querySelector('.code-content');
+      navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+        btn.classList.add('copied');
+        btn.querySelector('span').innerText = 'Скопировано!';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.querySelector('span').innerText = 'Копировать';
+        }, 2000);
+      });
+    }
+
+    // Simulated SSE Streaming
+    function startSimulatedStreaming(variant) {
+      if (currentBalance <= 0) {
+        alert('Баланс 0.00 ₽! Отправка заблокирована (HTTP 402). Воспользуйтесь реферальной программой.');
+        return;
+      }
+
+      const input = document.getElementById('prompt-input-' + variant);
+      const userText = input.value.trim() || "Покажи структуру ответа";
+      input.value = '';
+
+      const container = document.getElementById('messages-container-' + variant);
+      const streamRow = document.getElementById('streaming-row-' + variant);
+      const streamOutput = document.getElementById('stream-output-text-' + variant);
+      const sendBtn = document.getElementById('send-btn-' + variant);
+      const stopBtn = document.getElementById('stop-btn-' + variant);
+
+      // Append user prompt bubble
+      const userBubble = document.createElement('div');
+      userBubble.className = 'msg-row';
+      userBubble.innerHTML = `
+        <div class="msg-avatar avatar-user">К</div>
+        <div class="msg-body">
+          <div class="msg-author">Вы</div>
+          <div>${escapeHtml(userText)}</div>
+        </div>
+      `;
+      container.insertBefore(userBubble, streamRow);
+
+      // Show streaming placeholder
+      streamRow.style.display = 'flex';
+      streamOutput.innerHTML = '';
+      sendBtn.style.display = 'none';
+      stopBtn.style.display = 'inline-flex';
+
+      const sampleChunks = [
+        "Ответ ", "модели ", "стримится ", "по ", "Server-Sent ", "Events (SSE) ", "в ", "реальном ", "времени.\n\n",
+        "Каждый ", "чанк ", "содержит ", "дельту ", "текста. ", "После ", "завершения ", "генерации ", "бэкенд ",
+        "атомарно ", "рассчитывает ", "стоимость ", "токенов ", "и ", "списывает ", "их ", "с ", "вашего ", "рублевого ", "баланса.\n\n",
+        "```json\n",
+        "{\n  \"status\": \"completed\",\n  \"tokens\": 42,\n  \"cost_rub\": 0.02\n}\n",
+        "```"
+      ];
+
+      let chunkIdx = 0;
+      clearInterval(streamInterval);
+      streamInterval = setInterval(() => {
+        if (chunkIdx < sampleChunks.length) {
+          streamOutput.innerText += sampleChunks[chunkIdx];
+          chunkIdx++;
+          document.getElementById('messages-scroll-' + variant).scrollTop = 999999;
+        } else {
+          stopStreaming(variant);
+          // Deduct sample tokens cost
+          currentBalance = Math.max(0, currentBalance - 0.02);
+          updateBalanceDisplay();
+        }
+      }, 70);
+    }
+
+    function stopStreaming(variant) {
+      clearInterval(streamInterval);
+      const streamRow = document.getElementById('streaming-row-' + variant);
+      const sendBtn = document.getElementById('send-btn-' + variant);
+      const stopBtn = document.getElementById('stop-btn-' + variant);
+
+      sendBtn.style.display = 'inline-flex';
+      stopBtn.style.display = 'none';
+    }
+
+    // Toggle balance state (0.00 / 5.00) for testing failure modes
+    function toggleZeroBalanceState() {
+      currentBalance = currentBalance > 0 ? 0.00 : 5.00;
+      updateBalanceDisplay();
+    }
+
+    function updateBalanceDisplay() {
+      const formatted = currentBalance.toFixed(2) + ' ₽';
+      document.getElementById('user-balance-val').innerText = formatted;
+      const alertA = document.getElementById('balance-alert-a');
+      const sendBtnA = document.getElementById('send-btn-a');
+      
+      if (currentBalance <= 0) {
+        if (alertA) alertA.classList.add('show');
+        if (sendBtnA) sendBtnA.disabled = true;
+      } else {
+        if (alertA) alertA.classList.remove('show');
+        if (sendBtnA) sendBtnA.disabled = false;
+      }
+    }
+
+    function triggerNewChat() {
+      alert('Создан новый чистый диалог! (Вызов POST /api/v1/chats)');
+    }
+
+    function deleteChat(el) {
+      const item = el.closest('.va-chat-item');
+      if (confirm('Удалить диалог и всю историю сообщений?')) {
+        item.remove();
+      }
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      })[m]);
+    }
+  </script>
+</body>
+</html>
