@@ -4,9 +4,11 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -91,9 +93,12 @@ func main() {
 			srv.RegisterAuthRoutes(authHandler, tokenManager)
 			log.Println("Authentication and referral routes registered")
 
-			// Initialize MongoDB repositories if MONGODB_URI is configured
+			// Initialize MongoDB repositories if MONGODB_URI or MONGO_URI is configured
 			var chatService service.ChatService
 			mongoURI := os.Getenv("MONGODB_URI")
+			if mongoURI == "" {
+				mongoURI = os.Getenv("MONGO_URI")
+			}
 			if mongoURI != "" {
 				client, err := database.NewMongoClient(ctx, mongoURI)
 				if err != nil {
@@ -102,12 +107,20 @@ func main() {
 					mongoClient = client
 					dbName := os.Getenv("MONGO_DB")
 					if dbName == "" {
-						dbName = "llmchat"
+						if u, parseErr := url.Parse(mongoURI); parseErr == nil {
+							path := strings.TrimPrefix(u.Path, "/")
+							if path != "" {
+								dbName = path
+							}
+						}
+					}
+					if dbName == "" {
+						dbName = "llm_chat"
 					}
 					if err := database.EnsureIndexes(ctx, client.Database(dbName)); err != nil {
 						log.Printf("Warning: failed to ensure mongodb indexes: %v", err)
 					}
-					log.Println("MongoDB connection and indexes initialized")
+					log.Printf("MongoDB connection and indexes initialized (database: %s)", dbName)
 
 					chatRepo := mongodb.NewChatRepository(client.Database(dbName))
 					msgRepo := mongodb.NewMessageRepository(client.Database(dbName))
