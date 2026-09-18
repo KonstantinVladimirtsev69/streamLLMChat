@@ -145,11 +145,21 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
 
-- [ ] 06-01: Базовая верстка, дизайн-система, авторизация VK и провайдер состояния пользователя
-- [ ] 06-02: Сайдбар диалогов (список, создание, удаление) и переключение активного чата
-- [ ] 06-03: Окно переписки со стримингом SSE, Markdown рендерингом и селектором моделей
-- [ ] 06-04: Виджет баланса, история транзакций и модальное окно реферальной программы
+- [ ] 06-01: Фундамент, тема Modern AI Dark, авторизация VK/Mock, middleware и Zustand стор
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 06-02: Сайдбар диалогов (CRUD /api/v1/chats) и адаптивный мобильный drawer
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 06-03: Окно переписки со стримингом SSE, Markdown/Code рендерингом и селектором моделей
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 06-04: Виджет баланса в рублях, блокировка при 0.00 ₽, модальное окно рефералов и production-сборка
 
 ### Phase 7: End-to-End Integration & Dokploy Deployment
 
@@ -180,8 +190,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Project Scaffold & Infrastructure | 3/3 | Complete    | 2026-09-08 |
 | 2. Database Layer & Data Models | 3/3 | Complete    | 2026-09-08 |
 | 3. Authentication & Referral System | 3/3 | Complete    | 2026-09-08 |
-| 4. routerai.ru Integration & Billing Engine | 0/3 | Not started | - |
-
-| 5. Chat Management & Persistence | 0/2 | Not started | - |
-| 6. Next.js Frontend Interface | 0/4 | Not started | - |
+| 4. routerai.ru Integration & Billing Engine | 3/3 | Complete    | 2026-09-18 |
+| 5. Chat Management & Persistence | 2/2 | Complete    | 2026-09-18 |
+| 6. Next.js Frontend Interface | 0/4 | Planned     | - |
 | 7. End-to-End Integration & Dokploy Deployment | 0/2 | Not started | - |
