@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 current_phase: 06
 current_phase_name: Next.js Frontend Interface
-status: planned
-stopped_at: Phase 6 planned
-last_updated: "2026-09-18T21:00:00.000Z"
+status: completed
+stopped_at: Phase 6 completed
+last_updated: "2026-09-18T21:13:00.000Z"
 last_activity: 2026-09-18
-last_activity_desc: Phase 6 plans created (06-01-PLAN.md through 06-04-PLAN.md)
-state_head: f41ab4d
+last_activity_desc: Phase 6 completed and verified (Next.js 16 App Router interface)
+state_head: 41f3eba
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 20
-  completed_plans: 14
-  percent: 70
+  completed_plans: 18
+  percent: 90
 ---
 
 # Project State
@@ -23,20 +23,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-08)
 
 **Core value:** Быстрый, надёжный веб-чат с LLM и прозрачной тарификацией за фактически израсходованные токены с баланса пользователя.
-**Current focus:** Phase 6: Next.js Frontend Interface
+**Current focus:** Phase 6 completed — Next.js Frontend Interface
 
 ## Current Position
 
-Phase: 06 (Next.js Frontend Interface) — PLANNED
-Plan: 0/4 plans executed (4/4 planned)
-Status: Planned (Ready for execution)
-Last activity: 2026-09-18 — Phase 6 planning complete
+Phase: 06 (Next.js Frontend Interface) — COMPLETED
+Plan: 4/4 plans executed
+Status: Completed
+Last activity: 2026-09-18 — Phase 6 completed and verified
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 14
+- Total plans completed: 18
 - Average duration: - min
 - Total execution time: 0.0 hours
 
@@ -49,7 +49,7 @@ Last activity: 2026-09-18 — Phase 6 planning complete
 | 3. Authentication & Referral System | 3/3 | Complete | - |
 | 4. routerai.ru Integration & Billing Engine | 3/3 | Complete | - |
 | 5. Chat Management & Persistence | 2/2 | Complete | - |
-| 6. Next.js Frontend Interface | 0/4 | Planned | - |
+| 6. Next.js Frontend Interface | 4/4 | Complete | - |
 | 7. End-to-End Integration & Dokploy Deployment | 0/2 | - | - |
 
 **Recent Trend:**

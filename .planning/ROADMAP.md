@@ -147,19 +147,19 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 06-01: Фундамент, тема Modern AI Dark, авторизация VK/Mock, middleware и Zustand стор
+- [x] 06-01: Фундамент, тема Modern AI Dark, авторизация VK/Mock, middleware и Zustand стор
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-02: Сайдбар диалогов (CRUD /api/v1/chats) и адаптивный мобильный drawer
+- [x] 06-02: Сайдбар диалогов (CRUD /api/v1/chats) и адаптивный мобильный drawer
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 06-03: Окно переписки со стримингом SSE, Markdown/Code рендерингом и селектором моделей
+- [x] 06-03: Окно переписки со стримингом SSE, Markdown/Code рендерингом и селектором моделей
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 06-04: Виджет баланса в рублях, блокировка при 0.00 ₽, модальное окно рефералов и production-сборка
+- [x] 06-04: Виджет баланса в рублях, блокировка при 0.00 ₽, модальное окно рефералов и production-сборка
 
 ### Phase 7: End-to-End Integration & Dokploy Deployment
 
@@ -192,5 +192,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. Authentication & Referral System | 3/3 | Complete    | 2026-09-08 |
 | 4. routerai.ru Integration & Billing Engine | 3/3 | Complete    | 2026-09-18 |
 | 5. Chat Management & Persistence | 2/2 | Complete    | 2026-09-18 |
-| 6. Next.js Frontend Interface | 0/4 | Planned     | - |
+| 6. Next.js Frontend Interface | 4/4 | Complete    | 2026-09-18 |
 | 7. End-to-End Integration & Dokploy Deployment | 0/2 | Not started | - |
