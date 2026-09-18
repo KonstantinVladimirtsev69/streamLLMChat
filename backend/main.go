@@ -84,9 +84,11 @@ func main() {
 			})
 
 			cookieSecure := os.Getenv("COOKIE_SECURE") == "true"
+			cookieDomain := os.Getenv("COOKIE_DOMAIN")
 			authHandler := handler.NewAuthHandler(authService, vkClient, tokenManager, handler.AuthHandlerConfig{
 				FrontendURL:  frontendURL,
 				CookieSecure: cookieSecure,
+				CookieDomain: cookieDomain,
 			})
 			srv.RegisterAuthRoutes(authHandler, tokenManager)
 			log.Println("Authentication and referral routes registered")
