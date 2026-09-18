@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import ChatSidebar from "@/components/sidebar/ChatSidebar";
 import MobileDrawer from "@/components/sidebar/MobileDrawer";
+import ReferralModal from "@/components/modals/ReferralModal";
 import { useChatStore } from "@/store/useChatStore";
 import { apiFetch } from "@/lib/api";
 import type { User } from "@/types/chat";
@@ -42,6 +43,9 @@ export default function ChatLayout({
 
       {/* Mobile Drawer (visible when isMobileDrawerOpen === true) */}
       <MobileDrawer />
+
+      {/* Referral Program Modal */}
+      <ReferralModal />
 
       {/* Main Chat Workspace Area */}
       <main className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">

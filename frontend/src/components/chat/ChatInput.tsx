@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Send, Square } from "lucide-react";
 import { useChatStore } from "@/store/useChatStore";
+import ZeroBalanceAlert from "./ZeroBalanceAlert";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
   onAbort: () => void;
   disabled?: boolean;
   placeholder?: string;
-  topBanner?: React.ReactNode;
 }
 
 export default function ChatInput({
@@ -15,16 +15,18 @@ export default function ChatInput({
   onAbort,
   disabled = false,
   placeholder = "Спросите о чём угодно... (Enter для отправки, Shift+Enter для переноса)",
-  topBanner,
 }: ChatInputProps) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const { isStreaming, selectedModel } = useChatStore();
+  const { isStreaming, selectedModel, user, setReferralModalOpen } = useChatStore();
+
+  const isZeroBalance = user !== null && user.balance_rub <= 0;
+  const isInputDisabled = disabled || isZeroBalance;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!disabled && !isStreaming && input.trim()) {
+      if (!isInputDisabled && !isStreaming && input.trim()) {
         onSend(input);
         setInput("");
         if (textareaRef.current) {
@@ -36,7 +38,6 @@ export default function ChatInput({
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
-    // Auto-adjust height
     const target = e.target;
     target.style.height = "auto";
     target.style.height = `${Math.min(target.scrollHeight, 180)}px`;
@@ -46,7 +47,7 @@ export default function ChatInput({
     e.preventDefault();
     if (isStreaming) {
       onAbort();
-    } else if (!disabled && input.trim()) {
+    } else if (!isInputDisabled && input.trim()) {
       onSend(input);
       setInput("");
       if (textareaRef.current) {
@@ -55,11 +56,17 @@ export default function ChatInput({
     }
   };
 
+  const effectivePlaceholder = isZeroBalance
+    ? "Баланс исчерпан (0.00 ₽). Пригласите друзей, чтобы продолжить диалог."
+    : placeholder;
+
   return (
     <div className="w-full px-4 pb-4 pt-2 bg-gradient-to-t from-[#090a0f] via-[#090a0f]/90 to-transparent">
       <div className="max-w-[800px] mx-auto flex flex-col gap-2">
-        {/* Optional Alert Banner (e.g. Zero Balance) */}
-        {topBanner}
+        {/* Zero Balance Alert Banner */}
+        {isZeroBalance && (
+          <ZeroBalanceAlert onOpenReferral={() => setReferralModalOpen(true)} />
+        )}
 
         {/* Input Form Box */}
         <form
@@ -72,8 +79,8 @@ export default function ChatInput({
             value={input}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
-            disabled={disabled}
-            placeholder={placeholder}
+            disabled={isInputDisabled}
+            placeholder={effectivePlaceholder}
             className="flex-1 max-h-[180px] py-2 px-3 bg-transparent text-sm text-slate-200 placeholder-slate-500 resize-none outline-none leading-relaxed disabled:opacity-50 disabled:cursor-not-allowed"
           />
 
@@ -92,7 +99,7 @@ export default function ChatInput({
           ) : (
             <button
               type="submit"
-              disabled={disabled || !input.trim()}
+              disabled={isInputDisabled || !input.trim()}
               className="p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-30 disabled:hover:bg-indigo-600 transition-all shrink-0 shadow-md shadow-indigo-600/20 active:scale-95"
               title="Отправить сообщение"
               aria-label="Отправить сообщение"

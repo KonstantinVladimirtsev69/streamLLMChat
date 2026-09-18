@@ -2,6 +2,7 @@ import React from "react";
 import { Menu } from "lucide-react";
 import { useChatStore } from "@/store/useChatStore";
 import ModelSelector from "./ModelSelector";
+import BalanceChip from "./BalanceChip";
 
 interface HeaderProps {
   rightSlot?: React.ReactNode;
@@ -25,14 +26,15 @@ export default function Header({ rightSlot }: HeaderProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <h1 className="text-sm font-semibold text-slate-200 truncate max-w-[160px] sm:max-w-[240px] md:max-w-[320px]">
+        <h1 className="text-sm font-semibold text-slate-200 truncate max-w-[140px] sm:max-w-[220px] md:max-w-[300px]">
           {chatTitle}
         </h1>
       </div>
 
-      {/* Right Area: Model Selector & Balance / Actions */}
+      {/* Right Area: Model Selector & Balance */}
       <div className="flex items-center gap-2.5 shrink-0">
         <ModelSelector />
+        <BalanceChip />
         {rightSlot}
       </div>
     </header>
