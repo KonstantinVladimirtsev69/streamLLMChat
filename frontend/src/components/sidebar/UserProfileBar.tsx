@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { useChatStore } from "@/store/useChatStore";
 import { apiFetch } from "@/lib/api";
 
 export default function UserProfileBar() {
+  const router = useRouter();
   const { user, resetState } = useChatStore();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -15,7 +17,7 @@ export default function UserProfileBar() {
       // Proceed to reset even on error
     } finally {
       resetState();
-      window.location.href = "/";
+      router.push("/");
     }
   };
 
@@ -29,6 +31,7 @@ export default function UserProfileBar() {
     <div className="flex items-center justify-between gap-3 p-3 border-t border-white/[0.08] bg-[#0f1118]/80">
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         {user?.avatar_url ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={user.avatar_url}
             alt={displayName}

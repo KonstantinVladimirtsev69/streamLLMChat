@@ -1,7 +1,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import { useChatStore } from "@/store/useChatStore";
 import { apiFetch } from "@/lib/api";
-import type { Chat, StreamEvent } from "@/types/chat";
+import type { Chat, StreamEvent, User } from "@/types/chat";
 
 export function useChatStream() {
   const {
@@ -14,7 +14,6 @@ export function useChatStream() {
     finalizeMessage,
     setIsStreaming,
     applyDeduction,
-    user,
     setUser,
   } = useChatStore();
 
@@ -110,6 +109,7 @@ export function useChatStream() {
         }
 
         if (response.status === 401) {
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
           window.location.href = "/";
           return;
         }
@@ -150,7 +150,7 @@ export function useChatStream() {
                   });
                   applyDeduction(event.usage.cost_kopecks);
                   // Refresh user balance from server asynchronously
-                  apiFetch<typeof user>("/api/v1/auth/me")
+                  apiFetch<User>("/api/v1/auth/me")
                     .then((fresh) => fresh && setUser(fresh))
                     .catch(() => {});
                 }
@@ -188,7 +188,6 @@ export function useChatStream() {
       setIsStreaming,
       applyDeduction,
       setUser,
-      user,
     ]
   );
 

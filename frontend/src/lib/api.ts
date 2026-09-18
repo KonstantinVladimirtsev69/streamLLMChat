@@ -34,6 +34,7 @@ export async function apiFetch<T = unknown>(
 
   if (response.status === 401) {
     if (typeof window !== "undefined") {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = "/";
     }
     throw new ApiError("Сессия истекла. Пожалуйста, авторизуйтесь снова.", 401);

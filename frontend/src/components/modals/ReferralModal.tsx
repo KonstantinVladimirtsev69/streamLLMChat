@@ -6,13 +6,7 @@ import { formatRub } from "@/lib/format";
 export default function ReferralModal() {
   const { isReferralModalOpen, setReferralModalOpen, user } = useChatStore();
   const [copied, setCopied] = useState(false);
-  const [origin, setOrigin] = useState("");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setOrigin(window.location.origin);
-    }
-  }, []);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   // Close on Escape key
   useEffect(() => {

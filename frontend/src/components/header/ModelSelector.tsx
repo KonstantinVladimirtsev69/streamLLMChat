@@ -11,7 +11,6 @@ export default function ModelSelector() {
     setModels,
     selectedModel,
     setSelectedModel,
-    activeChatId,
   } = useChatStore();
 
   const [isOpen, setIsOpen] = useState(false);

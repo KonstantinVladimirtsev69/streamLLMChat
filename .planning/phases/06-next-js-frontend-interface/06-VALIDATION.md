@@ -40,17 +40,17 @@ validated: "2026-09-18T20:57:00Z"
 
 | Task ID | Plan | Wave | Requirement | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------------|-----------|-------------------|-------------|--------|
-| 06-01-01 | 01 | 1 | R1, UI-01 | Установка зависимостей, дизайн-система темы Modern AI Dark, шрифты и базовые токены | build | `cd frontend && npx tsc --noEmit` | ✅ `globals.css` | ⬜ pending |
-| 06-01-02 | 01 | 1 | R1, UI-01 | Приветственный лендинг (`/`), Dev Mock вход и серверный `middleware.ts` на куке `auth_token` | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `middleware.ts` | ⬜ pending |
-| 06-01-03 | 01 | 1 | R1, UI-01 | Глобальный Zustand-стор (`useChatStore`), типизация и клиентский guard авторизации | unit/typecheck | `cd frontend && npx tsc --noEmit` | ✅ `useChatStore.ts` | ⬜ pending |
-| 06-02-01 | 02 | 2 | R2, UI-02 | Компонент сайдбара (`ChatSidebar`, `ChatItem`) с интеграцией `GET /api/v1/chats` | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ChatSidebar.tsx` | ⬜ pending |
-| 06-02-02 | 02 | 2 | R2, UI-02 | Создание нового диалога (`POST /api/v1/chats`) и удаление (`DELETE /api/v1/chats/{id}`) | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ChatItem.tsx` | ⬜ pending |
-| 06-02-03 | 02 | 2 | R2, UI-02 | Адаптивная выезжающая шторка (drawer) для экранов `<768px` с кнопкой-гамбургером | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ChatSidebar.tsx` | ⬜ pending |
-| 06-03-01 | 03 | 3 | R3, UI-03 | Клиентский хук `useChatStream` с чтением `ReadableStreamDefaultReader` и `AbortController` | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `useChatStream.ts` | ⬜ pending |
-| 06-03-02 | 03 | 3 | R3, UI-03 | Компоненты переписки: `ChatWindow`, `MessageItem`, `CodeBlock` с подсветкой и кнопкой копирования | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `CodeBlock.tsx` | ⬜ pending |
-| 06-03-03 | 03 | 3 | R4, UI-04 | Селектор моделей `ModelSelector` с загрузкой из `/api/v1/models` и переключением на лету | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ModelSelector.tsx` | ⬜ pending |
-| 06-04-01 | 04 | 4 | R5, UI-05 | Виджет баланса в рублях (`BalanceChip`) в шапке с обновлением после стриминга | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `BalanceChip.tsx` | 06 pending |
-| 06-04-02 | 04 | 4 | R5, UI-05 | Блокировка отправки сообщений при нулевом балансе (`ZeroBalanceAlert`) | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ZeroBalanceAlert.tsx` | ⬜ pending |
-| 06-04-03 | 04 | 4 | R6, UI-05 | Модальное окно реферальной программы (`ReferralModal`) с копированием ссылки и бонусами | typecheck/build | `cd frontend && npm run build` | ✅ `ReferralModal.tsx` | ⬜ pending |
+| 06-01-01 | 01 | 1 | R1, UI-01 | Установка зависимостей, дизайн-система темы Modern AI Dark, шрифты и базовые токены | build | `cd frontend && npx tsc --noEmit` | ✅ `globals.css` | ✅ green |
+| 06-01-02 | 01 | 1 | R1, UI-01 | Приветственный лендинг (`/`), Dev Mock вход и серверный `middleware.ts` на куке `auth_token` | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `middleware.ts` | ✅ green |
+| 06-01-03 | 01 | 1 | R1, UI-01 | Глобальный Zustand-стор (`useChatStore`), типизация и клиентский guard авторизации | unit/typecheck | `cd frontend && npx tsc --noEmit` | ✅ `useChatStore.ts` | ✅ green |
+| 06-02-01 | 02 | 2 | R2, UI-02 | Компонент сайдбара (`ChatSidebar`, `ChatItem`) с интеграцией `GET /api/v1/chats` | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ChatSidebar.tsx` | ✅ green |
+| 06-02-02 | 02 | 2 | R2, UI-02 | Создание нового диалога (`POST /api/v1/chats`) и удаление (`DELETE /api/v1/chats/{id}`) | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ChatItem.tsx` | ✅ green |
+| 06-02-03 | 02 | 2 | R2, UI-02 | Адаптивная выезжающая шторка (drawer) для экранов `<768px` с кнопкой-гамбургером | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ChatSidebar.tsx` | ✅ green |
+| 06-03-01 | 03 | 3 | R3, UI-03 | Клиентский хук `useChatStream` с чтением `ReadableStreamDefaultReader` и `AbortController` | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `useChatStream.ts` | ✅ green |
+| 06-03-02 | 03 | 3 | R3, UI-03 | Компоненты переписки: `ChatWindow`, `MessageItem`, `CodeBlock` с подсветкой и кнопкой копирования | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `CodeBlock.tsx` | ✅ green |
+| 06-03-03 | 03 | 3 | R4, UI-04 | Селектор моделей `ModelSelector` с загрузкой из `/api/v1/models` и переключением на лету | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ModelSelector.tsx` | ✅ green |
+| 06-04-01 | 04 | 4 | R5, UI-05 | Виджет баланса в рублях (`BalanceChip`) в шапке с обновлением после стриминга | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `BalanceChip.tsx` | ✅ green |
+| 06-04-02 | 04 | 4 | R5, UI-05 | Блокировка отправки сообщений при нулевом балансе (`ZeroBalanceAlert`) | typecheck | `cd frontend && npx tsc --noEmit` | ✅ `ZeroBalanceAlert.tsx` | ✅ green |
+| 06-04-03 | 04 | 4 | R6, UI-05 | Модальное окно реферальной программы (`ReferralModal`) с копированием ссылки и бонусами | typecheck/build | `cd frontend && npm run build` | ✅ `ReferralModal.tsx` | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*

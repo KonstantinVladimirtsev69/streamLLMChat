@@ -1,6 +1,5 @@
 import React from "react";
-import Link from "next/link";
-import { Sparkles, Coins, Users, Bot, ArrowRight, ShieldCheck, Zap } from "lucide-react";
+import { Coins, Users, Bot, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 
 export default function HeroSection() {
   const isDev = process.env.NODE_ENV === "development";
