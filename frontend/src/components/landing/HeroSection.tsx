@@ -3,6 +3,7 @@ import { Coins, Users, Bot, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 
 export default function HeroSection() {
   const isDev = process.env.NODE_ENV === "development";
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "";
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen px-4 py-16 overflow-hidden bg-[#090a0f] text-[#f8fafc]">
@@ -36,7 +37,7 @@ export default function HeroSection() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto pt-2">
           <a
-            href="/api/v1/auth/vk/login"
+            href={`${apiBase}/api/v1/auth/vk/login`}
             className="flex items-center justify-center gap-3 w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-sm transition-all shadow-lg shadow-blue-500/25 active:scale-[0.98]"
           >
             <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
@@ -48,7 +49,7 @@ export default function HeroSection() {
 
           {isDev && (
             <a
-              href="/api/v1/auth/mock"
+              href={`${apiBase}/api/v1/auth/mock`}
               className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 font-medium text-sm transition-all active:scale-[0.98]"
             >
               <Zap className="w-4 h-4 text-amber-400" />

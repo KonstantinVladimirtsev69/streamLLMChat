@@ -46,6 +46,15 @@ func New() *Server {
 }
 
 func (s *Server) routes() {
+	s.Router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"service": "LLM Chat API",
+			"status":  "ok",
+		})
+	})
+
 	s.Router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
