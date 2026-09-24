@@ -76,11 +76,15 @@ func main() {
 
 			authService := service.NewAuthService(userRepo, balanceRepo, referralRepo, txManager, refGen, frontendURL)
 
-			vkMock := os.Getenv("VK_MOCK_AUTH") == "true" || os.Getenv("VK_CLIENT_ID") == ""
+			vkClientID := os.Getenv("VK_CLIENT_ID")
+			vkMock := os.Getenv("VK_MOCK_AUTH") == "true" || vkClientID == ""
 			if vkMock {
 				log.Println("VK Auth: MOCK mode active (VK_MOCK_AUTH=true or VK_CLIENT_ID is empty) -> redirects to /api/v1/auth/mock")
 			} else {
-				log.Printf("VK Auth: LIVE mode active (client_id=%s, redirect_uri=%s)", os.Getenv("VK_CLIENT_ID"), os.Getenv("VK_REDIRECT_URI"))
+				if _, err := strconv.ParseInt(vkClientID, 10, 64); err != nil {
+					log.Printf("[WARNING] VK_CLIENT_ID '%s' is not numeric! VK Application ID must be an integer (e.g. 51234567). Check if you accidentally set VK_CLIENT_ID to your Client Secret (Защищённый ключ) instead of Application ID (ID приложения).", vkClientID)
+				}
+				log.Printf("VK Auth: LIVE mode active (client_id=%s, redirect_uri=%s)", vkClientID, os.Getenv("VK_REDIRECT_URI"))
 			}
 			vkClient := auth.NewVKOAuthClient(auth.VKConfig{
 				ClientID:     os.Getenv("VK_CLIENT_ID"),
