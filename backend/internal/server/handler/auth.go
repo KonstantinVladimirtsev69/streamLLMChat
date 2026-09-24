@@ -54,9 +54,10 @@ func NewAuthHandler(
 }
 
 type oauthStatePayload struct {
-	State    string `json:"state"`
-	RefCode  string `json:"ref_code,omitempty"`
-	ReturnTo string `json:"return_to,omitempty"`
+	State        string `json:"state"`
+	RefCode      string `json:"ref_code,omitempty"`
+	ReturnTo     string `json:"return_to,omitempty"`
+	CodeVerifier string `json:"code_verifier,omitempty"`
 }
 
 // Login initiates the VK OAuth flow or redirects to mock in dev mode.
@@ -70,15 +71,23 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Generate PKCE code verifier and challenge
+	verifier, challenge, err := auth.GeneratePKCE()
+	if err != nil {
+		h.redirectError(w, r, "pkce_failed")
+		return
+	}
+
 	// Generate random 16-byte state
 	var randBytes [16]byte
 	_, _ = rand.Read(randBytes[:])
 	stateHex := hex.EncodeToString(randBytes[:])
 
 	payload := oauthStatePayload{
-		State:    stateHex,
-		RefCode:  refCode,
-		ReturnTo: returnTo,
+		State:        stateHex,
+		RefCode:      refCode,
+		ReturnTo:     returnTo,
+		CodeVerifier: verifier,
 	}
 	payloadBytes, _ := json.Marshal(payload)
 	cookieVal := hex.EncodeToString(payloadBytes)
@@ -95,7 +104,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Secure:   h.cfg.CookieSecure,
 	})
 
-	authURL := h.vkClient.GetAuthURL(stateHex)
+	authURL := h.vkClient.GetAuthURL(stateHex, challenge)
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
@@ -109,6 +118,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 
 	stateParam := q.Get("state")
 	codeParam := q.Get("code")
+	deviceIDParam := q.Get("device_id")
 
 	// Read and validate state cookie
 	stateCookie, err := r.Cookie("oauth_state")
@@ -143,7 +153,12 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Exchange code for profile
-	profile, err := h.vkClient.ExchangeCode(r.Context(), codeParam)
+	profile, err := h.vkClient.ExchangeCode(r.Context(), auth.ExchangeParams{
+		Code:         codeParam,
+		CodeVerifier: stateData.CodeVerifier,
+		DeviceID:     deviceIDParam,
+		State:        stateParam,
+	})
 	if err != nil {
 		h.redirectError(w, r, "code_exchange_failed")
 		return

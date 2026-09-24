@@ -3,6 +3,7 @@ package auth_test
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -26,18 +27,19 @@ func TestVKOAuthClient(t *testing.T) {
 
 	client := auth.NewVKOAuthClient(cfg)
 
-	t.Run("GetAuthURL builds valid authorize URL", func(t *testing.T) {
+	t.Run("GetAuthURL builds valid VK ID authorize URL with PKCE", func(t *testing.T) {
 		t.Parallel()
 		state := "csrf-token-12345"
-		authURL := client.GetAuthURL(state)
+		challenge := "challenge-code-s256"
+		authURL := client.GetAuthURL(state, challenge)
 
 		parsed, err := url.Parse(authURL)
 		if err != nil {
 			t.Fatalf("failed to parse auth URL: %v", err)
 		}
 
-		if !strings.Contains(parsed.Host, "oauth.vk.com") {
-			t.Errorf("expected host oauth.vk.com, got %s", parsed.Host)
+		if !strings.Contains(parsed.Host, "id.vk.ru") && !strings.Contains(parsed.Host, "id.vk.com") {
+			t.Errorf("expected host id.vk.ru or id.vk.com, got %s", parsed.Host)
 		}
 		q := parsed.Query()
 		if q.Get("client_id") != "123456" {
@@ -49,30 +51,44 @@ func TestVKOAuthClient(t *testing.T) {
 		if q.Get("state") != state {
 			t.Errorf("expected state %s, got %s", state, q.Get("state"))
 		}
+		if q.Get("code_challenge") != challenge {
+			t.Errorf("expected code_challenge %s, got %s", challenge, q.Get("code_challenge"))
+		}
+		if q.Get("code_challenge_method") != "s256" {
+			t.Errorf("expected code_challenge_method s256, got %s", q.Get("code_challenge_method"))
+		}
+		if !strings.Contains(q.Get("scope"), "vkid.personal_info") {
+			t.Errorf("expected scope to contain vkid.personal_info, got %s", q.Get("scope"))
+		}
 	})
 
-	t.Run("ExchangeCode handles success with mocked HTTP server", func(t *testing.T) {
+	t.Run("ExchangeCode handles VK ID OAuth2.1 flow with PKCE and user_info", func(t *testing.T) {
 		t.Parallel()
+
+		var tokenRequestBody string
+		var userInfoRequested bool
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			if strings.Contains(r.URL.Path, "access_token") {
+			if strings.Contains(r.URL.Path, "oauth2/auth") {
+				bodyBytes, _ := io.ReadAll(r.Body)
+				tokenRequestBody = string(bodyBytes)
 				_ = json.NewEncoder(w).Encode(map[string]any{
-					"access_token": "mock-access-token",
-					"expires_in":   0,
+					"access_token": "vkid-access-token-999",
+					"token_type":   "Bearer",
+					"expires_in":   3600,
 					"user_id":      999888,
 				})
 				return
 			}
-			if strings.Contains(r.URL.Path, "users.get") {
+			if strings.Contains(r.URL.Path, "oauth2/user_info") {
+				userInfoRequested = true
 				_ = json.NewEncoder(w).Encode(map[string]any{
-					"response": []map[string]any{
-						{
-							"id":         999888,
-							"first_name": "Алексей",
-							"last_name":  "Смирнов",
-							"photo_200":  "https://vk.com/photo200.jpg",
-						},
+					"user": map[string]any{
+						"user_id":    999888,
+						"first_name": "Алексей",
+						"last_name":  "Смирнов",
+						"avatar":     "https://vk.com/photo200.jpg",
 					},
 				})
 				return
@@ -86,21 +102,30 @@ func TestVKOAuthClient(t *testing.T) {
 			ClientSecret: "secretkey",
 			RedirectURI:  "http://localhost:8080/api/v1/auth/vk/callback",
 			HTTPClient:   ts.Client(),
+			BaseURL:      ts.URL,
 		})
-
-		type baseURLExchanger interface {
-			SetBaseURL(url string)
-		}
-		if b, ok := testClient.(baseURLExchanger); ok {
-			b.SetBaseURL(ts.URL)
-		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 
-		profile, err := testClient.ExchangeCode(ctx, "valid-auth-code")
+		profile, err := testClient.ExchangeCode(ctx, auth.ExchangeParams{
+			Code:         "valid-auth-code",
+			CodeVerifier: "verifier-12345",
+			DeviceID:     "device-abc",
+			State:        "state-xyz",
+		})
 		if err != nil {
 			t.Fatalf("expected successful exchange, got: %v", err)
+		}
+
+		if !strings.Contains(tokenRequestBody, "code_verifier=verifier-12345") {
+			t.Errorf("expected token request body to contain code_verifier, got: %s", tokenRequestBody)
+		}
+		if !strings.Contains(tokenRequestBody, "device_id=device-abc") {
+			t.Errorf("expected token request body to contain device_id, got: %s", tokenRequestBody)
+		}
+		if !userInfoRequested {
+			t.Errorf("expected user_info endpoint to be called")
 		}
 
 		if profile.ID != 999888 {

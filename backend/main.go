@@ -90,6 +90,7 @@ func main() {
 				ClientID:     os.Getenv("VK_CLIENT_ID"),
 				ClientSecret: os.Getenv("VK_CLIENT_SECRET"),
 				RedirectURI:  os.Getenv("VK_REDIRECT_URI"),
+				BaseURL:      os.Getenv("VK_BASE_URL"),
 				FrontendURL:  frontendURL,
 				MockAuth:     vkMock,
 			})
