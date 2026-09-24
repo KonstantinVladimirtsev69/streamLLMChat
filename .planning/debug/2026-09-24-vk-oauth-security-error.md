@@ -38,3 +38,43 @@
 ## Статус верификации
 - Все юнит-тесты пакета `backend/internal/auth` и всего бэкенда (`go test ./...`) успешно пройдены.
 - Сборка и typecheck фронтенда (`npx tsc --noEmit`) успешно пройдены.
+
+---
+
+# Root Cause Analysis: Chat Stream HTTP 400 Bad Request
+
+## Problem Description
+После успешной авторизации через VK ID отправка тестового сообщения приводила к ошибке `HTTP 400` в логах:
+`"POST http://streamchat-api.velvet-sin.com/api/v1/chat/stream HTTP/1.1" from 172.17.0.1 - 400 54B in 203.27µs`
+
+## Root Cause Analysis
+1. Размер ответа бэкенда `54B` соответствует телу ошибки:
+   `{"error":"model and non-empty messages are required"}\n`
+2. Бэкенд возвращает структуры сущностей с ключами-обёртками:
+   - `POST /api/v1/chats` $\to$ `{"chat": { "id": "...", ... }}`
+   - `GET /api/v1/chats` $\to$ `{"chats": [...]}`
+   - `GET /api/v1/models` $\to$ `{"models": [...]}`
+   - `GET /api/v1/chats/:id/messages` $\to$ `{"messages": [...]}`
+3. Фронтенд в `useChatStream.ts` ожидал плоский объект:
+   `const newChat = await apiFetch<Chat>("/api/v1/chats")`
+   В результате `newChat.id` был `undefined`.
+4. В запросе стрима `POST /api/v1/chat/stream` поле `chat_id` оказывалось `undefined` и удалялось из JSON.
+5. Бэкенд без `chat_id` переходил в режим stateless-генерации, требующий массива `messages`. Фронтенд же отправлял только `{ content: "..." }`.
+
+## Реализованное решение
+1. В `frontend/src/hooks/useChatStream.ts`:
+   - Добавлена распаковка ответа `{"chat": ...}` (`const newChat = "chat" in res && res.chat ? res.chat : res`).
+   - В тело запроса стрима добавлен fallback `messages: [{ role: "user", content: trimmed }]` и дефолтная модель.
+2. В `frontend/src/components/sidebar/ChatSidebar.tsx`:
+   - Добавлена распаковка `{"chats": [...]}` и `{"chat": ...}`.
+3. В `frontend/src/components/header/ModelSelector.tsx`:
+   - Добавлена распаковка `{"models": [...]}`.
+4. В `frontend/src/app/chat/page.tsx`:
+   - Добавлена распаковка `{"messages": [...]}`.
+5. В `backend/internal/database/postgres.go`:
+   - Добавлен быстрый `net.Dialer` check (500ms) для предотвращения подвисания `pgxpool` при локальном тестировании без запущенного PostgreSQL.
+
+## Статус верификации
+- `go test -count=1 ./...` — PASS.
+- `npx tsc --noEmit` — PASS.
+- `npm run build` — PASS.
