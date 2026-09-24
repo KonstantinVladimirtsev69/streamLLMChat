@@ -23,11 +23,12 @@ export default function ChatPage() {
 
     const loadMessages = async () => {
       try {
-        const data = await apiFetch<Message[]>(
+        const res = await apiFetch<{ messages: Message[] } | Message[]>(
           `/api/v1/chats/${activeChatId}/messages`
         );
-        if (isMounted && Array.isArray(data)) {
-          setMessages(data);
+        const list = Array.isArray(res) ? res : res?.messages || [];
+        if (isMounted) {
+          setMessages(list);
         }
       } catch (err) {
         console.error("Failed to load messages:", err);

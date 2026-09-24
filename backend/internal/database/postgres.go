@@ -3,6 +3,8 @@ package database
 import (
 	"context"
 	"fmt"
+	"net"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -20,6 +22,15 @@ func NewPostgresPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, er
 	config.MaxConnLifetime = 1 * time.Hour
 	config.MaxConnIdleTime = 30 * time.Minute
 	config.HealthCheckPeriod = 1 * time.Minute
+
+	// Fast reachability check to prevent deadlock in pgxpool createIdleResources when offline
+	hostPort := net.JoinHostPort(config.ConnConfig.Host, strconv.Itoa(int(config.ConnConfig.Port)))
+	d := net.Dialer{Timeout: 500 * time.Millisecond}
+	conn, dialErr := d.DialContext(ctx, "tcp", hostPort)
+	if dialErr != nil {
+		return nil, fmt.Errorf("postgres host %s not reachable: %w", hostPort, dialErr)
+	}
+	_ = conn.Close()
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {

@@ -47,10 +47,11 @@ export function useChatStream() {
       // If no active chat, create one first
       if (!chatId) {
         try {
-          const newChat = await apiFetch<Chat>("/api/v1/chats", {
+          const res = await apiFetch<{ chat: Chat } | Chat>("/api/v1/chats", {
             method: "POST",
             body: JSON.stringify({ model: selectedModel || "gpt-4o-mini" }),
           });
+          const newChat = "chat" in res && res.chat ? res.chat : (res as Chat);
           addChat(newChat);
           setActiveChatId(newChat.id);
           chatId = newChat.id;
@@ -94,8 +95,9 @@ export function useChatStream() {
           },
           body: JSON.stringify({
             chat_id: chatId,
-            model: selectedModel,
+            model: selectedModel || "gpt-4o-mini",
             content: trimmed,
+            messages: [{ role: "user", content: trimmed }],
           }),
           signal: controller.signal,
         });

@@ -30,11 +30,12 @@ export default function ChatSidebar({ onItemClick }: ChatSidebarProps) {
     const loadChats = async () => {
       try {
         setIsLoading(true);
-        const data = await apiFetch<Chat[]>("/api/v1/chats");
-        if (isMounted && Array.isArray(data)) {
-          setChats(data);
-          if (!activeChatId && data.length > 0) {
-            setActiveChatId(data[0].id);
+        const res = await apiFetch<{ chats: Chat[] } | Chat[]>("/api/v1/chats");
+        const list = Array.isArray(res) ? res : res?.chats || [];
+        if (isMounted) {
+          setChats(list);
+          if (!activeChatId && list.length > 0) {
+            setActiveChatId(list[0].id);
           }
         }
       } catch (err) {
@@ -53,10 +54,11 @@ export default function ChatSidebar({ onItemClick }: ChatSidebarProps) {
   const handleCreateChat = async () => {
     try {
       setIsCreating(true);
-      const newChat = await apiFetch<Chat>("/api/v1/chats", {
+      const res = await apiFetch<{ chat: Chat } | Chat>("/api/v1/chats", {
         method: "POST",
         body: JSON.stringify({ model: selectedModel || "gpt-4o-mini" }),
       });
+      const newChat = "chat" in res && res.chat ? res.chat : (res as Chat);
       addChat(newChat);
       setActiveChatId(newChat.id);
       setMobileDrawerOpen(false);
