@@ -6,9 +6,11 @@ export interface User {
   avatar_url?: string;
   balance_rub: number;
   balance_kopecks: number;
-  referral_code: string;
-  invited_count: number;
-  referral_earnings_rub: number;
+  ref_code?: string;
+  referral_code?: string;
+  ref_link?: string;
+  invited_count?: number;
+  referral_earnings_rub?: number;
 }
 
 export interface Chat {
@@ -39,6 +41,8 @@ export interface LLMModel {
   context_length?: number;
   prompt_price?: number;
   completion_price?: number;
+  prompt_price_per_1m?: number;
+  completion_price_per_1m?: number;
 }
 
 export interface StreamUsage {
@@ -51,6 +55,7 @@ export interface StreamUsage {
 export interface StreamEvent {
   type: "delta" | "done" | "error";
   delta?: string;
+  content?: string;
   chat_id?: string;
   model?: string;
   usage?: StreamUsage;

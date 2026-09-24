@@ -87,7 +87,8 @@ export function useChatStream() {
       setIsStreaming(true, assistantMsgId);
 
       try {
-        const response = await fetch("/api/v1/chat/stream", {
+        const streamUrl = `${process.env.NEXT_PUBLIC_API_URL || ""}/api/v1/chat/stream`;
+        const response = await fetch(streamUrl, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -141,8 +142,9 @@ export function useChatStream() {
             try {
               const event: StreamEvent = JSON.parse(jsonStr);
 
-              if (event.type === "delta" && event.delta) {
-                updateStreamingMessage(assistantMsgId, event.delta);
+              const chunkText = event.delta || event.content || "";
+              if (event.type === "delta" && chunkText) {
+                updateStreamingMessage(assistantMsgId, chunkText);
               } else if (event.type === "done") {
                 if (event.usage) {
                   finalizeMessage(assistantMsgId, {
@@ -154,6 +156,13 @@ export function useChatStream() {
                   // Refresh user balance from server asynchronously
                   apiFetch<User>("/api/v1/auth/me")
                     .then((fresh) => fresh && setUser(fresh))
+                    .catch(() => {});
+                  // Refresh chat list to update title and updated_at order
+                  apiFetch<{ chats: Chat[] } | Chat[]>("/api/v1/chats")
+                    .then((res) => {
+                      const list = Array.isArray(res) ? res : res?.chats || [];
+                      if (list.length > 0) useChatStore.getState().setChats(list);
+                    })
                     .catch(() => {});
                 }
               } else if (event.type === "error") {

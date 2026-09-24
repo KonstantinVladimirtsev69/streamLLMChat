@@ -34,7 +34,8 @@ export default function ChatSidebar({ onItemClick }: ChatSidebarProps) {
         const list = Array.isArray(res) ? res : res?.chats || [];
         if (isMounted) {
           setChats(list);
-          if (!activeChatId && list.length > 0) {
+          const currentActive = useChatStore.getState().activeChatId;
+          if (!currentActive && list.length > 0) {
             setActiveChatId(list[0].id);
           }
         }
@@ -49,7 +50,7 @@ export default function ChatSidebar({ onItemClick }: ChatSidebarProps) {
     return () => {
       isMounted = false;
     };
-  }, [setChats, activeChatId, setActiveChatId]);
+  }, [setChats, setActiveChatId]);
 
   const handleCreateChat = async () => {
     try {

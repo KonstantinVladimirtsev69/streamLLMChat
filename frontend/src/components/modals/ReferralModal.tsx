@@ -21,8 +21,9 @@ export default function ReferralModal() {
 
   if (!isReferralModalOpen) return null;
 
-  const referralCode = user?.referral_code || "";
-  const referralLink = referralCode ? `${origin}/?ref=${referralCode}` : origin;
+  const referralCode = user?.ref_code || user?.referral_code || "";
+  const referralLink =
+    user?.ref_link || (referralCode ? `${origin}/?ref=${referralCode}` : origin);
 
   const handleCopy = async () => {
     try {

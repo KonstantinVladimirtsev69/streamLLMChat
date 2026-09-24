@@ -23,6 +23,7 @@ type UserDTO struct {
 	LastName       string  `json:"last_name"`
 	AvatarURL      string  `json:"avatar_url"`
 	RefCode        string  `json:"ref_code"`
+	ReferralCode   string  `json:"referral_code,omitempty"`
 	RefLink        string  `json:"ref_link"`
 	BalanceRub     float64 `json:"balance_rub"`
 	BalanceKopecks int64   `json:"balance_kopecks"`
@@ -156,6 +157,7 @@ func (s *authService) GetProfile(ctx context.Context, userID int64) (*UserDTO, e
 		LastName:       user.LastName,
 		AvatarURL:      user.AvatarURL,
 		RefCode:        user.RefCode,
+		ReferralCode:   user.RefCode,
 		RefLink:        fmt.Sprintf("%s/?ref=%s", s.frontendURL, user.RefCode),
 		BalanceKopecks: balanceKopecks,
 		BalanceRub:     float64(balanceKopecks) / 100.0,

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -59,8 +60,8 @@ func (h *ChatHandler) CreateChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req CreateChatRequest
-	if r.Body != nil && r.ContentLength > 0 {
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if r.Body != nil {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
@@ -512,6 +513,9 @@ func (h *ChatHandler) StreamChat(w http.ResponseWriter, r *http.Request) {
 			case model.StreamEventDelta:
 				generatedChars += len(event.Content)
 				assistantText.WriteString(event.Content)
+				if event.Delta == "" {
+					event.Delta = event.Content
+				}
 			case model.StreamEventDone:
 				if event.Usage != nil {
 					lastUsage = event.Usage
