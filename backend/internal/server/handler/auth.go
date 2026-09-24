@@ -66,7 +66,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	if h.vkClient.IsMock() {
 		mockURL := fmt.Sprintf("/api/v1/auth/mock?ref=%s&return_to=%s", url.QueryEscape(refCode), url.QueryEscape(returnTo))
-		http.Redirect(w, r, mockURL, http.StatusFound)
+		h.redirect(w, r, mockURL, http.StatusFound)
 		return
 	}
 
@@ -291,6 +291,22 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(map[string]string{
 		"status": "ok",
 	})
+}
+
+func (h *AuthHandler) redirect(w http.ResponseWriter, r *http.Request, target string, status int) {
+	if strings.HasPrefix(target, "/") {
+		proto := "http"
+		if r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https" {
+			proto = "https"
+		}
+		host := r.Host
+		if fwdHost := r.Header.Get("X-Forwarded-Host"); fwdHost != "" {
+			host = fwdHost
+		}
+		target = fmt.Sprintf("%s://%s%s", proto, host, target)
+	}
+	//nolint:gosec // target is controlled application redirect path
+	http.Redirect(w, r, target, status)
 }
 
 func (h *AuthHandler) redirectError(w http.ResponseWriter, r *http.Request, reason string) {
