@@ -54,9 +54,10 @@ func NewAuthHandler(
 }
 
 type oauthStatePayload struct {
-	State    string `json:"state"`
-	RefCode  string `json:"ref_code,omitempty"`
-	ReturnTo string `json:"return_to,omitempty"`
+	State        string `json:"state"`
+	CodeVerifier string `json:"code_verifier,omitempty"`
+	RefCode      string `json:"ref_code,omitempty"`
+	ReturnTo     string `json:"return_to,omitempty"`
 }
 
 // Login initiates the VK OAuth flow or redirects to mock in dev mode.
@@ -75,10 +76,17 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	_, _ = rand.Read(randBytes[:])
 	stateHex := hex.EncodeToString(randBytes[:])
 
+	verifier, challenge, err := auth.GeneratePKCE()
+	if err != nil {
+		h.redirectError(w, r, "internal_error")
+		return
+	}
+
 	payload := oauthStatePayload{
-		State:    stateHex,
-		RefCode:  refCode,
-		ReturnTo: returnTo,
+		State:        stateHex,
+		CodeVerifier: verifier,
+		RefCode:      refCode,
+		ReturnTo:     returnTo,
 	}
 	payloadBytes, _ := json.Marshal(payload)
 	cookieVal := hex.EncodeToString(payloadBytes)
@@ -95,7 +103,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Secure:   h.cfg.CookieSecure,
 	})
 
-	authURL := h.vkClient.GetAuthURL(stateHex)
+	authURL := h.vkClient.GetAuthURL(stateHex, challenge)
 	http.Redirect(w, r, authURL, http.StatusFound)
 }
 
@@ -109,6 +117,7 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 
 	stateParam := q.Get("state")
 	codeParam := q.Get("code")
+	deviceParam := q.Get("device_id")
 
 	// Read and validate state cookie
 	stateCookie, err := r.Cookie("oauth_state")
@@ -143,7 +152,12 @@ func (h *AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Exchange code for profile
-	profile, err := h.vkClient.ExchangeCode(r.Context(), codeParam)
+	profile, err := h.vkClient.ExchangeCodeWithParams(r.Context(), auth.ExchangeParams{
+		Code:         codeParam,
+		CodeVerifier: stateData.CodeVerifier,
+		DeviceID:     deviceParam,
+		State:        stateParam,
+	})
 	if err != nil {
 		h.redirectError(w, r, "code_exchange_failed")
 		return
