@@ -391,8 +391,13 @@ func (h *ChatHandler) StreamChat(w http.ResponseWriter, r *http.Request) {
 			// Save user message to MongoDB before generation
 			_, _ = h.chatSvc.SaveUserMessage(r.Context(), chatID, userID, userPrompt)
 			_ = h.chatSvc.TouchChat(r.Context(), chatID, userID, req.Model)
+		} else if len(req.Messages) == 0 {
+			req.Messages = []model.ChatMessage{{Role: "user", Content: userPrompt}}
 		}
 	} else {
+		if req.Content != "" && len(req.Messages) == 0 {
+			req.Messages = []model.ChatMessage{{Role: "user", Content: strings.TrimSpace(req.Content)}}
+		}
 		if req.Model == "" || len(req.Messages) == 0 {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
@@ -512,6 +517,9 @@ func (h *ChatHandler) StreamChat(w http.ResponseWriter, r *http.Request) {
 			case model.StreamEventDelta:
 				generatedChars += len(event.Content)
 				assistantText.WriteString(event.Content)
+				if event.Delta == "" {
+					event.Delta = event.Content
+				}
 			case model.StreamEventDone:
 				if event.Usage != nil {
 					lastUsage = event.Usage

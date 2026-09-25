@@ -49,6 +49,7 @@ type TokenUsage struct {
 type StreamEvent struct {
 	Type    StreamEventType `json:"type"`
 	Content string          `json:"content,omitempty"`
+	Delta   string          `json:"delta,omitempty"`
 	Usage   *TokenUsage     `json:"usage,omitempty"`
 	Error   string          `json:"error,omitempty"`
 }

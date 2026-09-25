@@ -21,10 +21,11 @@ export default function ModelSelector() {
   useEffect(() => {
     let isMounted = true;
     if (models.length === 0) {
-      apiFetch<LLMModel[]>("/api/v1/models")
+      apiFetch<{ models: LLMModel[] } | LLMModel[]>("/api/v1/models")
         .then((data) => {
-          if (isMounted && Array.isArray(data)) {
-            setModels(data);
+          const modelList = Array.isArray(data) ? data : data?.models || [];
+          if (isMounted && modelList.length > 0) {
+            setModels(modelList);
           }
         })
         .catch((err) => console.error("Failed to load models:", err));

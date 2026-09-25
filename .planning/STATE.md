@@ -4,9 +4,9 @@ current_phase: 06
 current_phase_name: Next.js Frontend Interface
 status: completed
 stopped_at: Phase 6 completed
-last_updated: "2026-09-18T21:13:00.000Z"
-last_activity: 2026-09-18
-last_activity_desc: Phase 6 completed and verified (Next.js 16 App Router interface)
+last_updated: "2026-09-25T17:58:00.000Z"
+last_activity: 2026-09-25
+last_activity_desc: API contracts audit & fix between Next.js frontend and Go backend
 state_head: 41f3eba
 progress:
   total_phases: 7
@@ -68,6 +68,7 @@ Decisions logged in PROJECT.md Key Decisions table:
 - Тарификация списания баланса на основе реальной стоимости токенов routerai.ru
 - Авторизация через VK OAuth со стартовым бонусом 5 руб и реферальным вознаграждением +2 руб
 - Монорепозиторий с независимыми Dockerfile сервисов и root Makefile / docker-compose для Dokploy и локального запуска
+- Контракты API: бэкенд возвращает обёртки `chats`, `models`, `messages`, `chat`; фронтенд распаковывает их с фолбэком на плоские массивы; SSE события поддерживают оба поля `delta` и `content`
 
 ### Pending Todos
 

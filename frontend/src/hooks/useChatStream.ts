@@ -47,10 +47,14 @@ export function useChatStream() {
       // If no active chat, create one first
       if (!chatId) {
         try {
-          const newChat = await apiFetch<Chat>("/api/v1/chats", {
+          const res = await apiFetch<{ chat: Chat } | Chat>("/api/v1/chats", {
             method: "POST",
             body: JSON.stringify({ model: selectedModel || "gpt-4o-mini" }),
           });
+          const newChat = (res as { chat: Chat }).chat || (res as Chat);
+          if (!newChat || !newChat.id) {
+            throw new Error("Не удалось получить идентификатор созданного диалога");
+          }
           addChat(newChat);
           setActiveChatId(newChat.id);
           chatId = newChat.id;
@@ -86,7 +90,9 @@ export function useChatStream() {
       setIsStreaming(true, assistantMsgId);
 
       try {
-        const response = await fetch("/api/v1/chat/stream", {
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        const streamUrl = `${apiBaseUrl}/api/v1/chat/stream`;
+        const response = await fetch(streamUrl, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -139,8 +145,9 @@ export function useChatStream() {
             try {
               const event: StreamEvent = JSON.parse(jsonStr);
 
-              if (event.type === "delta" && event.delta) {
-                updateStreamingMessage(assistantMsgId, event.delta);
+              const deltaText = event.delta || event.content;
+              if (event.type === "delta" && deltaText) {
+                updateStreamingMessage(assistantMsgId, deltaText);
               } else if (event.type === "done") {
                 if (event.usage) {
                   finalizeMessage(assistantMsgId, {

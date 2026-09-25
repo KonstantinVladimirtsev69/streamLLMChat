@@ -17,15 +17,18 @@ type VKProfile = auth.VKProfile
 
 // UserDTO represents the public profile and balance data returned to the client.
 type UserDTO struct {
-	ID             int64   `json:"id"`
-	VKID           int64   `json:"vk_id"`
-	FirstName      string  `json:"first_name"`
-	LastName       string  `json:"last_name"`
-	AvatarURL      string  `json:"avatar_url"`
-	RefCode        string  `json:"ref_code"`
-	RefLink        string  `json:"ref_link"`
-	BalanceRub     float64 `json:"balance_rub"`
-	BalanceKopecks int64   `json:"balance_kopecks"`
+	ID                  int64   `json:"id"`
+	VKID                int64   `json:"vk_id"`
+	FirstName           string  `json:"first_name"`
+	LastName            string  `json:"last_name"`
+	AvatarURL           string  `json:"avatar_url"`
+	RefCode             string  `json:"ref_code"`
+	ReferralCode        string  `json:"referral_code"`
+	RefLink             string  `json:"ref_link"`
+	BalanceRub          float64 `json:"balance_rub"`
+	BalanceKopecks      int64   `json:"balance_kopecks"`
+	InvitedCount        int     `json:"invited_count"`
+	ReferralEarningsRub float64 `json:"referral_earnings_rub"`
 }
 
 // AuthService defines business operations for user authentication, registration, and referrals.
@@ -149,16 +152,31 @@ func (s *authService) GetProfile(ctx context.Context, userID int64) (*UserDTO, e
 		return nil, fmt.Errorf("failed to get balance: %w", err)
 	}
 
+	var invitedCount int
+	var referralEarningsKopecks int64
+	if s.referralRepo != nil {
+		referrals, refErr := s.referralRepo.ListByReferrerID(ctx, userID, 1000, 0)
+		if refErr == nil {
+			invitedCount = len(referrals)
+			for _, r := range referrals {
+				referralEarningsKopecks += r.RewardKopecks
+			}
+		}
+	}
+
 	dto := &UserDTO{
-		ID:             user.ID,
-		VKID:           user.VKID,
-		FirstName:      user.FirstName,
-		LastName:       user.LastName,
-		AvatarURL:      user.AvatarURL,
-		RefCode:        user.RefCode,
-		RefLink:        fmt.Sprintf("%s/?ref=%s", s.frontendURL, user.RefCode),
-		BalanceKopecks: balanceKopecks,
-		BalanceRub:     float64(balanceKopecks) / 100.0,
+		ID:                  user.ID,
+		VKID:                user.VKID,
+		FirstName:           user.FirstName,
+		LastName:            user.LastName,
+		AvatarURL:           user.AvatarURL,
+		RefCode:             user.RefCode,
+		ReferralCode:        user.RefCode,
+		RefLink:             fmt.Sprintf("%s/?ref=%s", s.frontendURL, user.RefCode),
+		BalanceKopecks:      balanceKopecks,
+		BalanceRub:          float64(balanceKopecks) / 100.0,
+		InvitedCount:        invitedCount,
+		ReferralEarningsRub: float64(referralEarningsKopecks) / 100.0,
 	}
 
 	return dto, nil
