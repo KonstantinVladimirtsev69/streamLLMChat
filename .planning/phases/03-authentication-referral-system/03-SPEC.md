@@ -24,7 +24,7 @@
 ### 1. AUTH-01: Аутентификация через VK OAuth 2.0
 - **Current:** В `backend/internal/server` отсутствуют эндпоинты аутентификации.
 - **Target:**
-  - Реализовать OAuth 2.0 клиент для взаимодействия с VK API (`https://oauth.vk.com` и `https://api.vk.com/method/users.get`):
+  - Реализовать OAuth 2.0 клиент для взаимодействия с VK API (`https://oauth.vk.ru` и `https://api.vk.ru/method/users.get`, с возможностью конфигурирования через `VK_BASE_URL` и `VK_API_URL`):
     - `GET /api/v1/auth/vk/login`: генерирует URL авторизации с параметрами `client_id`, `redirect_uri`, `response_type=code`, `scope=email` (опционально), `v=5.131` и случайным криптографическим `state` (в который упаковывается или связывается реферальный код `ref`), сохраняет `state` во временную cookie для защиты от CSRF и перенаправляет браузер на VK.
     - `GET /api/v1/auth/vk/callback`: принимает `code` и `state`, валидирует CSRF-state, обменивает `code` на `access_token` на сервере VK, запрашивает данные профиля пользователя (`id`, `first_name`, `last_name`, `photo_200`), извлекает реферальный код из `state`/cookie.
     - Поддержка тестового / dev-режима (Mock OAuth): при флаге `VK_MOCK_AUTH=true` или отсутствии боевых ключей в dev-окружении эндпоинт `/api/v1/auth/mock` позволяет моментально авторизоваться под тестовым пользователем для локальной разработки и сквозных тестов без реального обращения к VK.

@@ -29,6 +29,8 @@ type VKConfig struct {
 	ClientID     string
 	ClientSecret string
 	RedirectURI  string
+	BaseURL      string
+	APIBaseURL   string
 	FrontendURL  string
 	MockAuth     bool
 	HTTPClient   *http.Client
@@ -45,6 +47,7 @@ type vkOAuthClient struct {
 	cfg        VKConfig
 	httpClient *http.Client
 	baseURL    string // overrideable in tests
+	apiBaseURL string
 }
 
 // NewVKOAuthClient creates an OAuth client based on configuration.
@@ -53,16 +56,26 @@ func NewVKOAuthClient(cfg VKConfig) VKOAuthClient {
 	if client == nil {
 		client = &http.Client{Timeout: 10 * time.Second}
 	}
+	baseURL := cfg.BaseURL
+	if baseURL == "" {
+		baseURL = "https://oauth.vk.ru"
+	}
+	apiBaseURL := cfg.APIBaseURL
+	if apiBaseURL == "" {
+		apiBaseURL = "https://api.vk.ru"
+	}
 	return &vkOAuthClient{
 		cfg:        cfg,
 		httpClient: client,
-		baseURL:    "https://oauth.vk.com",
+		baseURL:    baseURL,
+		apiBaseURL: apiBaseURL,
 	}
 }
 
 // SetBaseURL allows overriding the base URL for unit/integration testing.
 func (c *vkOAuthClient) SetBaseURL(url string) {
 	c.baseURL = url
+	c.apiBaseURL = url
 }
 
 func (c *vkOAuthClient) IsMock() bool {
@@ -143,11 +156,8 @@ func (c *vkOAuthClient) ExchangeCode(ctx context.Context, code string) (*VKProfi
 		return nil, fmt.Errorf("%w: %s (%s)", ErrOAuthFailed, tokenData.Error, tokenData.ErrorDesc)
 	}
 
-	// 2. Fetch user profile from api.vk.com (or test baseURL)
-	userGetURL := "https://api.vk.com/method/users.get"
-	if c.baseURL != "https://oauth.vk.com" {
-		userGetURL = fmt.Sprintf("%s/method/users.get", c.baseURL)
-	}
+	// 2. Fetch user profile from api.vk.ru (or configured apiBaseURL)
+	userGetURL := fmt.Sprintf("%s/method/users.get", c.apiBaseURL)
 
 	uq := url.Values{}
 	uq.Set("user_ids", fmt.Sprintf("%d", tokenData.UserID))

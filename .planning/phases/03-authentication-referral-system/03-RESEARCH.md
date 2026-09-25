@@ -9,7 +9,7 @@
 ## 1. Executive Summary
 
 Фаза 3 реализует подсистему идентификации и сессий пользователей веб-сервиса:
-1. **VK OAuth 2.0 Integration**: серверная авторизация через VK ID / OAuth (`oauth.vk.com/authorize`, `oauth.vk.com/access_token`, `api.vk.com/method/users.get`). Для изолированной разработки и тестов без внешних ключей создаётся автономный Mock-режим (`VK_MOCK_AUTH=true` или при пустом `VK_CLIENT_ID`).
+1. **VK OAuth 2.0 Integration**: серверная авторизация через VK ID / OAuth (`oauth.vk.ru/authorize`, `oauth.vk.ru/access_token`, `api.vk.ru/method/users.get`, конфигурируемые через `VK_BASE_URL` и `VK_API_URL`). Для изолированной разработки и тестов без внешних ключей создаётся автономный Mock-режим (`VK_MOCK_AUTH=true` или при пустом `VK_CLIENT_ID`).
 2. **JWT Sessions**: генерация и валидация токенов HS256 (`golang-jwt/jwt/v5`) в защищённых cookies (`auth_token`, `HttpOnly=true`, `SameSite=Lax`, `Path=/`).
 3. **Auth Middleware**: извлечение сессии из cookies или `Authorization: Bearer`, валидация подписи и сроков, внедрение `userID` в `context.Context`.
 4. **Referral Engine & Financial Transactions**: при первой регистрации пользователя в БД запускается неделимая PostgreSQL транзакция через существующий `TxManager`:
@@ -42,7 +42,7 @@
       |------------------------------>|                                 |
       |                               | Генерирует CSRF-state           |
       |                               | Сохраняет ref & state в cookie  |
-      | 2. 302 Redirect oauth.vk.com  |                                 |
+      | 2. 302 Redirect oauth.vk.ru   |                                 |
       |<------------------------------|                                 |
       |                               |                                 |
       | 3. Авторизация и подтверждение прав                             |

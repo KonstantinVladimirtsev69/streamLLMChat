@@ -36,8 +36,8 @@ func TestVKOAuthClient(t *testing.T) {
 			t.Fatalf("failed to parse auth URL: %v", err)
 		}
 
-		if !strings.Contains(parsed.Host, "oauth.vk.com") {
-			t.Errorf("expected host oauth.vk.com, got %s", parsed.Host)
+		if !strings.Contains(parsed.Host, "oauth.vk.ru") {
+			t.Errorf("expected host oauth.vk.ru, got %s", parsed.Host)
 		}
 		q := parsed.Query()
 		if q.Get("client_id") != "123456" {
@@ -48,6 +48,22 @@ func TestVKOAuthClient(t *testing.T) {
 		}
 		if q.Get("state") != state {
 			t.Errorf("expected state %s, got %s", state, q.Get("state"))
+		}
+	})
+
+	t.Run("GetAuthURL respects custom BaseURL from VKConfig", func(t *testing.T) {
+		t.Parallel()
+		customCfg := cfg
+		customCfg.BaseURL = "https://custom-oauth.example.com"
+		customClient := auth.NewVKOAuthClient(customCfg)
+
+		authURL := customClient.GetAuthURL("custom-state")
+		parsed, err := url.Parse(authURL)
+		if err != nil {
+			t.Fatalf("failed to parse auth URL: %v", err)
+		}
+		if parsed.Host != "custom-oauth.example.com" {
+			t.Errorf("expected host custom-oauth.example.com, got %s", parsed.Host)
 		}
 	})
 

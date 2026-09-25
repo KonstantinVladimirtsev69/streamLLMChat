@@ -46,7 +46,7 @@ Downstream agents MUST read `03-SPEC.md` before planning or implementing. Requir
 
 ### 2. OAuth Flow и обработка редиректов
 - **D-02 (Server-side Redirect Flow):** Классический OAuth 2.0 flow:
-  1. Бэкенд на `/api/v1/auth/vk/login` генерирует случайный криптографический `state`, привязывает к нему `ref` (реферальный код) и `return_to` (желаемый URL возврата), сохраняет `state` во временную cookie с коротким TTL (5–10 минут) и отправляет 302 Redirect на `oauth.vk.com/authorize`.
+  1. Бэкенд на `/api/v1/auth/vk/login` генерирует случайный криптографический `state`, привязывает к нему `ref` (реферальный код) и `return_to` (желаемый URL возврата), сохраняет `state` во временную cookie с коротким TTL (5–10 минут) и отправляет 302 Redirect на `oauth.vk.ru/authorize`.
   2. При возврате на `/api/v1/auth/vk/callback` бэкенд проверяет совпадение `state` с cookie (защита от CSRF), обменивает `code` на `access_token`, запрашивает профиль пользователя в VK API (`users.get`) и вызывает `AuthService.AuthenticateOrRegister`.
   3. При успехе устанавливается сессионная cookie и выполняется 302 Redirect на `${FRONTEND_URL}/chat` (или `return_to`). При ошибке — редирект на `${FRONTEND_URL}/?error=auth_failed`. — **Reversibility:** reversible.
 - **D-03 (Dev/Mock режим):** Если `VK_CLIENT_ID` пуст или `VK_MOCK_AUTH=true`, при обращении к `/api/v1/auth/vk/login` или `/api/v1/auth/mock` бэкенд не пытается стучаться в VK, а генерирует или авторизует тестового пользователя с предустановленным VK ID (например, `vk_id=999001` или передаваемым параметром `?vk_id=...`). Это обеспечивает мгновенный локальный цикл разработки и надёжные CI-тесты без внешних сетевых зависимостей. — **Reversibility:** reversible.

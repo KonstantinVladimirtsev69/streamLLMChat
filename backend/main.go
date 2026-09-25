@@ -80,12 +80,14 @@ func main() {
 			if vkMock {
 				log.Println("VK Auth: MOCK mode active (VK_MOCK_AUTH=true or VK_CLIENT_ID is empty) -> redirects to /api/v1/auth/mock")
 			} else {
-				log.Printf("VK Auth: LIVE mode active (client_id=%s, redirect_uri=%s)", os.Getenv("VK_CLIENT_ID"), os.Getenv("VK_REDIRECT_URI"))
+				log.Printf("VK Auth: LIVE mode active (client_id=%s, redirect_uri=%s, base_url=%s)", os.Getenv("VK_CLIENT_ID"), os.Getenv("VK_REDIRECT_URI"), os.Getenv("VK_BASE_URL"))
 			}
 			vkClient := auth.NewVKOAuthClient(auth.VKConfig{
 				ClientID:     os.Getenv("VK_CLIENT_ID"),
 				ClientSecret: os.Getenv("VK_CLIENT_SECRET"),
 				RedirectURI:  os.Getenv("VK_REDIRECT_URI"),
+				BaseURL:      os.Getenv("VK_BASE_URL"),
+				APIBaseURL:   os.Getenv("VK_API_URL"),
 				FrontendURL:  frontendURL,
 				MockAuth:     vkMock,
 			})
